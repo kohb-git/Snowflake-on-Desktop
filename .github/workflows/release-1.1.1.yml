@@ -1,0 +1,21 @@
+name: Publish snowlit 1.1.1
+on:
+  push:
+    branches: [main]
+    paths: ['releases/1.1.1/snowlit-1.1.1.exe']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish the Windows executable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          asset=releases/1.1.1/snowlit-1.1.1.exe
+          echo "00284db79930780d4df860f6e4f615c14980eaadc6e7cc05b5a84e0b3fc98cdd  $asset" | sha256sum -c -
+          gh release create v1.1.1 "$asset" --target "$GITHUB_SHA" --title "snowlit 1.1.1" --notes "Автоустановка следующих обновлений после подтверждения в меню снежинки: проверка SHA-256, замена EXE и перезапуск. Версию 1.1.1 поверх 1.1.0 нужно установить вручную."

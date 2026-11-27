@@ -176,7 +176,7 @@ namespace WinterDesktop
 		private void ShowScreenStatus()
 		{
 			RefreshWindows();
-			var report=new StringBuilder("snowlit 1.1.0 · Диагностика экранов");
+			var report=new StringBuilder("snowlit 1.1.1 · Диагностика экранов");
 			report.AppendLine().AppendLine();
 			int n=0;
 			foreach (var screen in world.Screens) {
@@ -245,7 +245,7 @@ namespace WinterDesktop
 			base.TopMost = true;
 			base.AutoScaleMode = AutoScaleMode.None;
 			ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-			contextMenuStrip.Items.Add("snowlit · 1.1.0").Enabled = false;
+			contextMenuStrip.Items.Add("snowlit · 1.1.1").Enabled = false;
 			pauseItem = new ToolStripMenuItem("Приостановить снег");
 			ToolStripMenuItem toolStripMenuItem = pauseItem;
 			EventHandler value = delegate
@@ -274,7 +274,7 @@ namespace WinterDesktop
 			});
 			contextMenuStrip.Items.Add("Проверить обновления…", null, delegate
 			{
-				UpdateCheck.OpenLatest();
+				UpdateCheck.OpenLatest(this);
 			});
 			contextMenuStrip.Items.Add("Краткая справка", null, delegate
 			{
@@ -282,7 +282,7 @@ namespace WinterDesktop
 			});
 			contextMenuStrip.Items.Add("О приложении", null, delegate
 			{
-				MessageBox.Show("snowlit 1.1.0\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("snowlit 1.1.1\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			exitItem = new ToolStripMenuItem("Выход · Ctrl+Shift+Q", null, delegate
 			{
@@ -863,6 +863,7 @@ namespace WinterDesktop
 		}
 	}
 }
+
 
 
 

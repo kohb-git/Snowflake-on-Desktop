@@ -32,7 +32,7 @@ namespace WinterDesktop
             }
         }
 
-        internal static void OpenLatest()
+        internal static void OpenLatest(Form owner)
         {
             if (checking) return;
             checking = true;
@@ -46,30 +46,38 @@ namespace WinterDesktop
                     MessageBox.Show("Не удалось проверить обновления. Попробуйте позже.", "snowlit");
                     return;
                 }
-                ShowResult((Version)e.Result);
+                if (!owner.IsDisposed) ShowResult((Version)e.Result, owner);
             };
             worker.RunWorkerAsync();
         }
 
-        private static void ShowResult(Version latest)
+        private static void ShowResult(Version latest, Form owner)
         {
             Version installed = new Version(typeof(UpdateCheck).Assembly.GetName().Version.ToString(3));
             if (latest <= installed) {
                 MessageBox.Show("Установлена версия " + installed + ". Более новых выпусков нет.", "snowlit");
                 return;
             }
-            string message = "Доступна версия " + latest + ". Установлена " + installed + ". Открыть страницу скачивания?";
+            string message = "Доступна версия " + latest + ". Установлена " + installed + ". Скачать, проверить и установить обновление? После установки snowlit перезапустится.";
             if (MessageBox.Show(message, "snowlit · Проверить обновления",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes) return;
-            try
-            {
-                Process.Start(new ProcessStartInfo(Latest) { UseShellExecute = true });
-            }
-            catch (Win32Exception)
-            {
-                MessageBox.Show("Не удалось открыть браузер. Адрес последнего выпуска:\n" + Latest,
-                    "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            checking=true;
+            var download=new BackgroundWorker();
+            download.DoWork+=delegate(object sender,DoWorkEventArgs e) {
+                string probe=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.ExecutablePath),".snowlit-"+Guid.NewGuid().ToString("N")+".tmp");
+                using(new System.IO.FileStream(probe,System.IO.FileMode.CreateNew,System.IO.FileAccess.Write,System.IO.FileShare.None,4096,System.IO.FileOptions.DeleteOnClose)){}
+                e.Result=UpdateInstaller.Stage(latest);
+            };
+            download.RunWorkerCompleted+=delegate(object sender,RunWorkerCompletedEventArgs e) {
+                checking=false; download.Dispose();
+                if(owner.IsDisposed)return;
+                if(e.Error!=null){MessageBox.Show("Не удалось установить обновление. "+e.Error.Message,"snowlit");return;}
+                try {
+                    UpdateInstaller.Launch((string)e.Result,"--finish-update \""+Application.ExecutablePath+"\" "+Process.GetCurrentProcess().Id);
+                    owner.Close();
+                } catch(Win32Exception ex){MessageBox.Show(ex.Message,"snowlit");}
+            };
+            download.RunWorkerAsync();
         }
     }
 }

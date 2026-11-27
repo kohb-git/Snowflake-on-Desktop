@@ -4,6 +4,8 @@ A Windows desktop snowfall effect with animated lights on window frames.
 
 [Download the latest Windows release](https://github.com/kohb-git/Snowflake-on-Desktop/releases/latest). Exit the previous instance from the tray before launching it. Existing QuietSnow preferences are reused.
 
+From version 1.1.1, choose **Проверить обновления…** and confirm to download the latest release, verify its SHA-256 against GitHub release metadata, replace the portable executable at its existing path and restart. The executable folder must be writable. For 1.1.0 and earlier, install 1.1.1 manually once.
+
 Version 1.1.0 adds per-display effect settings, numbered display identification, garland offset and sag with a live preview, timed pauses, and a copyable display report. The tray update check compares the installed version with the latest public GitHub release.
 
 Version 1.0.7 keeps the garland visible during window capture and supports monitors with staggered origins.

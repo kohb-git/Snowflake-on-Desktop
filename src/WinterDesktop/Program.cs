@@ -8,8 +8,13 @@ namespace WinterDesktop
 	internal static class Program
 	{
 		[STAThread]
-		private static void Main()
+		private static void Main(string[] args)
 		{
+			if (args.Length == 3 && args[0] == "--finish-update") {
+				UpdateInstaller.Finish(args[1],args[2]);
+				return;
+			}
+			UpdateInstaller.CleanOldDownloads();
 			bool createdNew;
 			using (new Mutex(initiallyOwned: true, "Local\\WinterDesktop.SoftSnow.v2", out createdNew))
 			{
@@ -52,3 +57,4 @@ namespace WinterDesktop
 		}
 	}
 }
+
