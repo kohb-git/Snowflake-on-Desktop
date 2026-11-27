@@ -6,6 +6,11 @@ namespace WinterDesktop
 {
 	internal sealed class OptionsWindow : Form
 	{
+		private sealed class PreviewPanel : Panel
+		{
+			internal PreviewPanel() { DoubleBuffered = true; }
+		}
+
 		private readonly Preferences draft;
 
 		private readonly Func<Preferences, bool, bool> commit;
@@ -14,6 +19,7 @@ namespace WinterDesktop
 
 		internal OptionsWindow(Preferences current, Func<Preferences, bool, bool> save)
 		{
+			DoubleBuffered = true;
 			draft = current.Copy();
 			commit = save;
 			Text = "snowlit · Настройки";
@@ -41,7 +47,7 @@ namespace WinterDesktop
 					if(mode==0) draft.Modes.Remove(id); else draft.Modes[id]=mode;
 				});
 			}
-			var preview = new Panel { Width=470, Height=76, BackColor=Color.FromArgb(34,42,53) };
+			var preview = new PreviewPanel { Width=470, Height=76, BackColor=Color.FromArgb(34,42,53) };
 			var sample=new Surface("preview",new Rectangle(12,8,444,60),false);
 			preview.Paint += delegate(object sender, PaintEventArgs args) {
 				var model=new World(1){Display=draft,GarlandTheme=draft.Theme,LampScale=draft.LampSize/100f,LightLevel=draft.Brightness/100f};
@@ -243,4 +249,5 @@ namespace WinterDesktop
 		}
 	}
 }
+
 

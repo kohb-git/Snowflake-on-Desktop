@@ -1,0 +1,21 @@
+name: Publish snowlit 1.1.2
+on:
+  push:
+    branches: [main]
+    paths: ['releases/1.1.2/snowlit-1.1.2.exe']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish the Windows executable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          asset=releases/1.1.2/snowlit-1.1.2.exe
+          echo "2299a468c97cd69aba8255c55367093a52c27e1f986e98ab6b6a641c200bf5c1  $asset" | sha256sum -c -
+          gh release create v1.1.2 "$asset" --target "$GITHUB_SHA" --title "snowlit 1.1.2" --notes "Убрана анимация поверх заголовка настроек. Для окна настроек и предпросмотра гирлянды включена двойная буферизация."
