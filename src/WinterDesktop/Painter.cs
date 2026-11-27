@@ -45,6 +45,54 @@ namespace WinterDesktop
 			}
 			var allEffects = g.Save();
 			ClipEffects(g, world, false);
+			DrawFlakes(g, world);
+			g.Restore(allEffects);
+			var lightsState = g.Save();
+			ClipEffects(g, world, true);
+			DrawLights(g, world, separate);
+			g.Restore(lightsState);
+			ClipEffects(g, world, false);
+			foreach (Surface surface3 in world.Surfaces)
+			{
+				GraphicsState gstate3 = g.Save();
+				Clip(g, surface3);
+				DrawDrift(g, surface3);
+				g.Restore(gstate3);
+			}
+			if (world.Loose.Count > 0) DrawLooseSnow(g, world);
+			using (SolidBrush solidBrush2 = new SolidBrush(Color.White))
+			{
+				foreach (Powder item5 in world.Dust)
+				{
+					GraphicsState gstate5 = g.Save();
+					foreach (string frontWindow in item5.FrontWindows)
+					{
+						if (world.WindowRects.TryGetValue(frontWindow, out var value3))
+						{
+							g.ExcludeClip(value3);
+						}
+					}
+					solidBrush2.Color = Color.FromArgb((int)(210f * Math.Max(0f, 1f - item5.Age / item5.Life)), 250, 252, 255);
+					g.FillEllipse(solidBrush2, item5.X - item5.Radius, item5.Y - item5.Radius, item5.Radius * 2f, item5.Radius * 2f);
+					g.Restore(gstate5);
+				}
+			}
+			DrawRoadScene(g, world);
+			foreach (Ball ball in world.Balls)
+			{
+				GraphicsState gstate8 = g.Save();
+				Surface surface = world.Anchor(ball);
+				if (surface != null)
+				{
+					Clip(g, surface);
+				}
+				DrawBall(g, ball);
+				g.Restore(gstate8);
+			}
+		}
+
+		private static void DrawFlakes(Graphics g, World world)
+		{
 			using (SolidBrush solidBrush = new SolidBrush(Color.White))
 			{
 				foreach (ScreenArea screen2 in world.Screens)
@@ -66,9 +114,9 @@ namespace WinterDesktop
 					g.Restore(gstate);
 				}
 			}
-			g.Restore(allEffects);
-			var lightsState = g.Save();
-			ClipEffects(g, world, true);
+		}
+		private static void DrawLights(Graphics g, World world, Surface separate)
+		{
 			if (world.GarlandEnabled || world.Display.Modes.Count > 0)
 			{
 				foreach (Surface surface2 in world.Surfaces)
@@ -83,15 +131,9 @@ namespace WinterDesktop
 					}
 				}
 			}
-			g.Restore(lightsState);
-			ClipEffects(g, world, false);
-			foreach (Surface surface3 in world.Surfaces)
-			{
-				GraphicsState gstate3 = g.Save();
-				Clip(g, surface3);
-				DrawDrift(g, surface3);
-				g.Restore(gstate3);
-			}
+		}
+		private static void DrawLooseSnow(Graphics g, World world)
+		{
 			Dictionary<List<string>, List<LooseSnow>> dictionary = new Dictionary<List<string>, List<LooseSnow>>();
 			foreach (LooseSnow item in world.Loose)
 			{
@@ -121,23 +163,9 @@ namespace WinterDesktop
 					g.Restore(gstate4);
 				}
 			}
-			using (SolidBrush solidBrush2 = new SolidBrush(Color.White))
-			{
-				foreach (Powder item5 in world.Dust)
-				{
-					GraphicsState gstate5 = g.Save();
-					foreach (string frontWindow in item5.FrontWindows)
-					{
-						if (world.WindowRects.TryGetValue(frontWindow, out var value3))
-						{
-							g.ExcludeClip(value3);
-						}
-					}
-					solidBrush2.Color = Color.FromArgb((int)(210f * Math.Max(0f, 1f - item5.Age / item5.Life)), 250, 252, 255);
-					g.FillEllipse(solidBrush2, item5.X - item5.Radius, item5.Y - item5.Radius, item5.Radius * 2f, item5.Radius * 2f);
-					g.Restore(gstate5);
-				}
-			}
+		}
+		private static void DrawRoadScene(Graphics g, World world)
+		{
 			using (SolidBrush solidBrush3 = new SolidBrush(Color.White))
 			{
 				foreach (PlowSpray item6 in world.Spray)
@@ -161,19 +189,7 @@ namespace WinterDesktop
 					g.Restore(gstate7);
 				}
 			}
-			foreach (Ball ball in world.Balls)
-			{
-				GraphicsState gstate8 = g.Save();
-				Surface surface = world.Anchor(ball);
-				if (surface != null)
-				{
-					Clip(g, surface);
-				}
-				DrawBall(g, ball);
-				g.Restore(gstate8);
-			}
 		}
-
 		private static void ClipEffects(Graphics g, World world, bool lights)
 		{
 			foreach (var screen in world.Screens)
@@ -193,7 +209,7 @@ namespace WinterDesktop
 
 		internal static void DrawGarland(Graphics g, Surface surface, double time, World world)
 		{
-			_ = surface.Bounds;
+			if (!g.IsVisible(new Rectangle(surface.Bounds.Left,surface.Bounds.Top,surface.Bounds.Width,64))) return;
 			int garlandSpans = surface.GarlandSpans;
 			using (Pen pen = new Pen(Color.FromArgb(220, 39, 76, 65), 1.4f))
 			{
@@ -216,33 +232,10 @@ namespace WinterDesktop
 							PointF pointF = surface.CordPoint(i, num2, world.Display);
 							float x = pointF.X;
 							float y = pointF.Y;
-							GraphicsState gstate = g.Save();
-							g.TranslateTransform(x, y);
-							g.ScaleTransform(world.LampScale, world.LampScale);
-							g.RotateTransform(Math.Max(-35f, Math.Min(35f, (0f - surface.CordSwaySpeed[i]) * 0.45f + surface.GarlandSwing * (float)Math.Cos((double)((float)i + num2) * 0.8))));
-							g.TranslateTransform(0f - x, 0f - y);
+							float angle=Math.Max(-35f, Math.Min(35f, -surface.CordSwaySpeed[i]*0.45f + surface.GarlandSwing*(float)Math.Cos((i+num2)*0.8)));
 							Color baseColor = ((world.GarlandTheme == 1) ? Color.FromArgb(255, 221, 152) : ((world.GarlandTheme == 2) ? Color.FromArgb(165, 222, 255) : BulbColors[(i * num + k) % BulbColors.Length]));
 							float num3 = ((world.TwinkleSpeed == 0f) ? 1f : GarlandBrightness(time * (double)world.TwinkleSpeed, i * num + k)) * world.LightLevel;
-							using (GraphicsPath graphicsPath = new GraphicsPath())
-							{
-								graphicsPath.AddEllipse(x - 15f, y - 8f, 30f, 32f);
-								using (PathGradientBrush pathGradientBrush = new PathGradientBrush(graphicsPath))
-								{
-									pathGradientBrush.CenterColor = Color.FromArgb((int)(165f * num3), baseColor);
-									pathGradientBrush.SurroundColors = new Color[1] { Color.FromArgb(0, baseColor) };
-									g.FillPath(pathGradientBrush, graphicsPath);
-								}
-							}
-							g.FillRectangle(brush, x - 2f, y, 4f, 4f);
-							using (SolidBrush brush2 = new SolidBrush(Color.FromArgb(255, (int)(((float)(int)baseColor.R + (float)(255 - baseColor.R) * 0.12f) * num3), (int)(((float)(int)baseColor.G + (float)(255 - baseColor.G) * 0.12f) * num3), (int)(((float)(int)baseColor.B + (float)(255 - baseColor.B) * 0.12f) * num3))))
-							{
-								g.FillEllipse(brush2, x - 3f, y + 3f, 6f, 8f);
-							}
-							using (SolidBrush brush3 = new SolidBrush(Color.FromArgb((int)(245f * num3), 255, 252, 239)))
-							{
-								g.FillEllipse(brush3, x - 1.5f, y + 4f, 2.5f, 3.5f);
-							}
-							g.Restore(gstate);
+							LampSprites.Draw(g,baseColor,num3,x,y,world.LampScale,angle);
 						}
 					}
 				}
@@ -411,6 +404,8 @@ namespace WinterDesktop
 		}
 	}
 }
+
+
 
 
 

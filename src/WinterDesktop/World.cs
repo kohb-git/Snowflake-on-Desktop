@@ -597,6 +597,15 @@ namespace WinterDesktop
 			EvolveSnow(dt);
 			StepDust(dt);
 			PushSettledSnow();
+			StepFlakes(dt);
+			StepLoose(dt);
+			StepPlows(dt);
+			UpdateAnchors();
+			StepBalls(dt);
+			UpdateAnchors();
+		}
+		private void StepFlakes(float dt)
+		{
 			double wind = Math.Sin(time * 0.22) * 14.0;
 			for (int i = 0; i < Flakes.Count; i++)
 			{
@@ -640,9 +649,9 @@ namespace WinterDesktop
 					Flakes[i] = NewFlake(flake.Screen, scatter: false);
 				}
 			}
-			StepLoose(dt);
-			StepPlows(dt);
-			UpdateAnchors();
+		}
+		private void StepBalls(float dt)
+		{
 			foreach (Ball ball in Balls)
 			{
 				if (ball == Held || ball.Rest)
@@ -683,7 +692,7 @@ namespace WinterDesktop
 					}
 				}
 			}
-			UpdateAnchors();
+
 		}
 
 		internal Surface FindLanding(float x, float radius, float from, float to)
@@ -959,6 +968,7 @@ namespace WinterDesktop
 		}
 	}
 }
+
 
 
 

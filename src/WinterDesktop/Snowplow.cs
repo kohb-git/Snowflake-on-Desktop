@@ -57,14 +57,14 @@ namespace WinterDesktop
                     int count=Math.Min(3,1+(int)(collected*0.08f));
                     for(int i=0;i<count;i++) {
                         bool chute=Kind==RoadEvent.Convoy;
-                        spray.Add(new PlowSpray {Screen=Screen,X=X+(chute?-30:52),Y=Ground.Bounds.Top-(chute?48:9),
-                            VX=chute?-75:35+(float)random.NextDouble()*55,
-                            VY=chute?-42:-45-(float)random.NextDouble()*85,
-                            Radius=1+(float)random.NextDouble()*1.8f,Life=chute?0.60f:0.45f+(float)random.NextDouble()*0.6f});
+                        spray.Add(new PlowSpray {Screen=Screen,X=X+(chute?-48:52),Y=Ground.Bounds.Top-(chute?52:9),
+                            VX=chute?-50:35+(float)random.NextDouble()*55,
+                            VY=chute?-20:-45-(float)random.NextDouble()*85,
+                            Radius=1+(float)random.NextDouble()*1.8f,Life=chute?0.48f:0.45f+(float)random.NextDouble()*0.6f});
                     }
                 }
             }
-            if(X>Ground.Bounds.Right+(Kind==RoadEvent.Convoy ? 145 : 64)) {Active=false;waiting=0;sampleDelay=0;}
+            if(X>Ground.Bounds.Right+(Kind==RoadEvent.Convoy ? 160 : 64)) {Active=false;waiting=0;sampleDelay=0;}
         }
         private float Sweep(float left,float right)
         {
@@ -77,3 +77,4 @@ namespace WinterDesktop
         }
     }
 }
+

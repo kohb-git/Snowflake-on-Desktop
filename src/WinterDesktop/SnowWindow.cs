@@ -176,7 +176,7 @@ namespace WinterDesktop
 		private void ShowScreenStatus()
 		{
 			RefreshWindows();
-			var report=new StringBuilder("snowlit 1.2.0 · Диагностика экранов");
+			var report=new StringBuilder("snowlit 1.2.1 · Диагностика экранов");
 			report.AppendLine().AppendLine();
 			int n=0;
 			foreach (var screen in world.Screens) {
@@ -245,7 +245,7 @@ namespace WinterDesktop
 			base.TopMost = true;
 			base.AutoScaleMode = AutoScaleMode.None;
 			ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-			contextMenuStrip.Items.Add("snowlit · 1.2.0").Enabled = false;
+			contextMenuStrip.Items.Add("snowlit · 1.2.1").Enabled = false;
 			pauseItem = new ToolStripMenuItem("Приостановить снег");
 			ToolStripMenuItem toolStripMenuItem = pauseItem;
 			EventHandler value = delegate
@@ -282,7 +282,7 @@ namespace WinterDesktop
 			});
 			contextMenuStrip.Items.Add("О приложении", null, delegate
 			{
-				MessageBox.Show("snowlit 1.2.0\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("snowlit 1.2.1\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			exitItem = new ToolStripMenuItem("Выход · Ctrl+Shift+Q", null, delegate
 			{
@@ -517,9 +517,12 @@ namespace WinterDesktop
 			bool flag = paused || Suspended || !preferences.Interactive || (!base.Capture && (!world.Screens.Exists(s=>s.SnowArea.Contains(position) && preferences.SnowOn(s.Id)) || !world.HitTest(position)));
 			if (flag != mousePassThrough)
 			{
-				mousePassThrough = flag;
+				
 				int windowLong = Native.GetWindowLong(base.Handle, -20);
-				Native.SetWindowLong(base.Handle, -20, flag ? (windowLong | 0x20) : (windowLong & -33));
+				if (windowLong == 0) return; // This overlay always has nonzero extended styles.
+				int requested = flag ? windowLong | Transparent : windowLong & ~Transparent;
+				if (windowLong != requested && Native.SetWindowLong(base.Handle,-20,requested) == 0) return;
+				mousePassThrough = flag;
 				Native.SetWindowPos(base.Handle, new IntPtr(-1), 0, 0, 0, 0, 51u);
 				Cursor = (flag ? Cursors.Default : Cursors.Hand);
 			}
@@ -687,6 +690,7 @@ namespace WinterDesktop
 		}
 	}
 }
+
 
 
 

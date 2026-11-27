@@ -16,25 +16,87 @@ namespace WinterDesktop
 				g.FillRectangle(Brushes.LemonChiffon,24,-17,5,3);
 				return;
 			}
-			// Tractor with front auger and delivery chute, tipper following behind.
-			g.FillRectangle(Brushes.ForestGreen,-26,-24,51,14);
-			g.FillRectangle(Brushes.DarkOliveGreen,-20,-42,22,21);
-			g.FillRectangle(Brushes.LightBlue,-17,-39,15,14);
-			g.FillRectangle(Brushes.DarkSlateGray,-23,-44,29,4);
-			g.FillRectangle(Brushes.DimGray,13,-35,4,12);
-			Wheel(g,-16,13); Wheel(g,18,8);
-			g.DrawLine(Pens.DarkSlateGray,21,-13,38,-8);
-			g.FillPolygon(Brushes.OrangeRed,new[]{new Point(33,-17),new Point(45,-22),new Point(49,-2),new Point(35,-2)});
-			g.DrawLines(Pens.SlateGray,new[]{new Point(38,-18),new Point(28,-40),new Point(-12,-51),new Point(-30,-48)});
-			g.FillRectangle(Brushes.DarkSlateGray,-135,-13,86,7);
-			g.FillRectangle(Brushes.Firebrick,-80,-32,25,21);
-			g.FillRectangle(Brushes.LightSteelBlue,-75,-29,17,10);
-			g.FillPolygon(Brushes.DarkOrange,new[]{new Point(-140,-34),new Point(-84,-34),new Point(-88,-15),new Point(-134,-15)});
-			if(scene.Load>0) {
-				int height=(int)Math.Min(15,scene.Load/12);
-				g.FillEllipse(Brushes.WhiteSmoke,-136,-35-height,49,2+height);
+			DrawTipper(g, scene);
+			DrawTractor(g, scene);
+		}
+
+		private static void DrawTractor(Graphics g, Snowplow scene)
+		{
+			// The chassis, glazed cab and loader linkage share fixed axle centres.
+			g.FillRectangle(Brushes.DarkSlateGray,-25,-16,55,9);
+			using(var hood=new LinearGradientBrush(new Rectangle(-2,-31,35,18),Color.OliveDrab,Color.DarkOliveGreen,90f))
+				g.FillPolygon(hood,new[]{new Point(-3,-30),new Point(20,-30),new Point(30,-25),new Point(29,-16),new Point(-3,-16)});
+			g.DrawLine(Pens.Goldenrod,0,-26,26,-24);
+			for(int x=18;x<27;x+=3)g.DrawLine(Pens.DarkSlateGray,x,-23,x,-18);
+			g.FillRectangle(Brushes.DimGray,8,-42,3,13);
+			g.DrawLine(Pens.Silver,8,-40,8,-32);
+			g.FillPolygon(Brushes.DarkSlateGray,new[]{new Point(-31,-46),new Point(-8,-46),new Point(0,-27),new Point(-2,-19),new Point(-30,-19)});
+			using(var glass=new LinearGradientBrush(new Point(-28,-43),new Point(-9,-23),Color.LightSteelBlue,Color.DarkSlateGray)){
+				g.FillPolygon(glass,new[]{new Point(-27,-43),new Point(-19,-43),new Point(-19,-28),new Point(-28,-27)});
+				g.FillPolygon(glass,new[]{new Point(-16,-43),new Point(-10,-43),new Point(-4,-28),new Point(-16,-28)});
 			}
-			Wheel(g,-125,7); Wheel(g,-108,7); Wheel(g,-63,7);
+			g.DrawLine(Pens.LightGray,-11,-28,-5,-34);
+			g.FillRectangle(Brushes.ForestGreen,-33,-48,28,4);
+			g.DrawLine(Pens.WhiteSmoke,-31,-48,-10,-48);
+			g.FillRectangle(Brushes.DarkOrange,-29,-51,4,3);
+			g.DrawLine(Pens.DarkSlateGray,-6,-40,2,-42);g.FillRectangle(Brushes.Black,1,-44,3,6);
+			g.FillRectangle(Brushes.DimGray,-8,-17,8,3);g.FillRectangle(Brushes.Silver,-8,-12,7,2);
+			Tire(g,-22,14,scene.Travel,true); Tire(g,21,9,scene.Travel,true);
+			using(var fender=new Pen(Color.OliveDrab,3))g.DrawArc(fender,-38,-30,32,31,194,138);
+			using(var arm=new Pen(Color.SlateGray,3))g.DrawLine(arm,12,-20,39,-9);
+			g.DrawLine(Pens.Silver,22,-22,41,-12);
+			g.FillPolygon(Brushes.Firebrick,new[]{new Point(34,-18),new Point(46,-23),new Point(52,-20),new Point(52,-3),new Point(34,-3)});
+			g.FillEllipse(Brushes.DarkSlateGray,39,-18,12,14);
+			g.DrawArc(Pens.Silver,40,-17,9,12,(int)(scene.Travel*5)%360,240);
+			g.DrawLine(Pens.Gainsboro,34,-3,52,-3);
+			var chute=new[]{new Point(39,-15),new Point(28,-37),new Point(4,-49),new Point(-30,-55),new Point(-48,-51)};
+			using(var tube=new Pen(Color.DarkSlateGray,5)){tube.LineJoin=LineJoin.Round;g.DrawLines(tube,chute);}
+			g.DrawLines(Pens.LightSlateGray,chute);
+			g.FillRectangle(Brushes.LightYellow,26,-25,4,3);
+		}
+
+		private static void DrawTipper(Graphics g, Snowplow scene)
+		{
+			g.FillRectangle(Brushes.DarkSlateGray,-155,-15,101,7);
+			g.FillRectangle(Brushes.Gray,-107,-13,16,6);
+			g.FillPolygon(Brushes.DarkSlateGray,new[]{new Point(-87,-36),new Point(-65,-36),new Point(-55,-25),new Point(-55,-12),new Point(-87,-12)});
+			using(var cab=new LinearGradientBrush(new Point(-85,-35),new Point(-65,-12),Color.Peru,Color.Sienna))
+				g.FillPolygon(cab,new[]{new Point(-85,-35),new Point(-66,-35),new Point(-57,-25),new Point(-57,-15),new Point(-85,-15)});
+			g.FillPolygon(Brushes.LightSteelBlue,new[]{new Point(-80,-32),new Point(-68,-32),new Point(-65,-25),new Point(-80,-25)});
+			g.FillPolygon(Brushes.DarkSlateGray,new[]{new Point(-66,-32),new Point(-59,-25),new Point(-63,-25)});
+			g.DrawRectangle(Pens.SaddleBrown,-82,-24,16,9);
+			g.DrawLine(Pens.Black,-79,-22,-75,-22);g.FillRectangle(Brushes.LightYellow,-60,-19,4,3);
+			g.FillRectangle(Brushes.SlateGray,-62,-13,9,3);g.FillRectangle(Brushes.Silver,-86,-12,10,2);
+			using(var bed=new LinearGradientBrush(new Point(-150,-39),new Point(-145,-18),Color.DarkGoldenrod,Color.SaddleBrown))
+				g.FillPolygon(bed,new[]{new Point(-158,-38),new Point(-91,-38),new Point(-94,-17),new Point(-153,-17)});
+			for(int x=-149;x<-98;x+=13){g.DrawLine(Pens.Sienna,x,-35,x+3,-20);g.DrawLine(Pens.Peru,x+1,-35,x+4,-20);}
+			if(scene.Load>0){
+				int h=(int)Math.Min(12,scene.Load/15f);
+				g.FillPolygon(Brushes.WhiteSmoke,new[]{new Point(-154,-38),new Point(-145,-38-h/2),new Point(-134,-38-h),new Point(-124,-37-h),new Point(-115,-39-h/2),new Point(-101,-38-h/3),new Point(-94,-38)});
+			}
+			g.DrawLine(Pens.Wheat,-157,-38,-91,-38);
+			Tire(g,-144,8,scene.Travel,false);Tire(g,-123,8,scene.Travel,false);Tire(g,-70,8,scene.Travel,false);
+			g.FillRectangle(Brushes.Red,-156,-17,3,3);
+		}
+
+		private static void Tire(Graphics g,int x,int radius,float travel,bool tractor)
+		{
+			int cy=-radius;
+			g.FillEllipse(Brushes.Black,x-radius,cy-radius,radius*2,radius*2);
+			float angle=travel/radius;
+			int count=tractor?12:8;
+			for(int i=0;i<count;i++) {
+				double a=angle+i*2*Math.PI/count;
+				float dx=(float)Math.Cos(a),dy=(float)Math.Sin(a);
+				g.DrawLine(Pens.DimGray,x+dx*(radius-3)-dy,cy+dy*(radius-3)+dx,x+dx*(radius-1),cy+dy*(radius-1));
+			}
+			int hub=radius/2;
+			g.FillEllipse(tractor?Brushes.Goldenrod:Brushes.LightSlateGray,x-hub,cy-hub,hub*2,hub*2);
+			g.FillEllipse(Brushes.DarkSlateGray,x-2,cy-2,4,4);
+			for(int i=0;i<5;i++){
+				double a=angle+2*Math.PI*i/5;
+				g.FillEllipse(Brushes.Gainsboro,x+(float)Math.Cos(a)*(hub-1)-0.65f,cy+(float)Math.Sin(a)*(hub-1)-0.65f,1.3f,1.3f);
+			}
 		}
 		private static void Wheel(Graphics g,int x,int r)
 		{
@@ -167,3 +229,4 @@ private static void DrawPlow(Graphics g, Snowplow plow)
 
 		  }
 }
+

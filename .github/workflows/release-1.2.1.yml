@@ -1,0 +1,21 @@
+name: Publish snowlit 1.2.1
+on:
+  push:
+    branches: [main]
+    paths: ['releases/1.2.1/snowlit-1.2.1.exe']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish the Windows executable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          asset=releases/1.2.1/snowlit-1.2.1.exe
+          echo "2bd7ab8b5bbd00ee75c97cadc8f0ca5b1ffd6dd0ab9a12148a9f971e762f8883  $asset" | sha256sum -c -
+          gh release create v1.2.1 "$asset" --target "$GITHUB_SHA" --title "snowlit 1.2.1" --notes "Кэш свечения гирлянд, повторная попытка при сбое переключения пропуска кликов и обновлённая колонна: шнек, желоб, вращающиеся колёса и трёхосный самосвал с грузом."
