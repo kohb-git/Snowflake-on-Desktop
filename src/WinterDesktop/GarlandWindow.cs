@@ -20,7 +20,7 @@ namespace WinterDesktop
             get { var p = base.CreateParams; p.ExStyle |= 0x080800A0; return p; }
         }
         private static bool Fits(SnowWindow form, Rectangle band, Surface surface) {
-            if (!form.world.Screens.Exists(s => s.SnowArea.Contains(band))) return false;
+            if (!form.world.Screens.Exists(s => s.SnowArea.Contains(band) && form.world.Display.LightsOn(s.Id))) return false;
             return !surface.Covers.Exists(r => r.IntersectsWith(band)) &&
                 !form.world.FullScreenCovers.Exists(r => r.IntersectsWith(band)) &&
                 !form.world.Taskbars.Exists(r => r.IntersectsWith(band));
@@ -30,7 +30,7 @@ namespace WinterDesktop
         }
         internal Surface PrepareFor(SnowWindow form, byte opacity, IntPtr h) {
             Rectangle desktop = form.desktop;
-            if (form.world.GarlandEnabled && form.frameInsets.ContainsKey(h) && !Native.HasWindowCapture(h)) {
+            if ((form.world.GarlandEnabled || form.world.Display.Modes.Count > 0) && form.frameInsets.ContainsKey(h) && !Native.HasWindowCapture(h)) {
                 var id = h.ToInt64().ToString();
                 var s = form.world.Surfaces.Find(item => !item.Ground && item.Id == id);
                 if (s != null && Native.GetWindowRect(h,out var raw)) {
@@ -76,5 +76,6 @@ namespace WinterDesktop
         }
     }
 }
+
 
 

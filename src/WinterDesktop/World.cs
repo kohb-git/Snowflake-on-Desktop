@@ -69,6 +69,7 @@ namespace WinterDesktop
 		internal float SwayStrength = 1f;
 
 		internal bool GarlandEnabled;
+		internal Preferences Display = new Preferences();
 
 		internal bool MotionEffectsEnabled = true;
 
@@ -1239,3 +1240,4 @@ namespace WinterDesktop
 		}
 	}
 }
+

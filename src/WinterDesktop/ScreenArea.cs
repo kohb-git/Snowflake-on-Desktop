@@ -5,6 +5,7 @@ namespace WinterDesktop
 	internal sealed class ScreenArea
 	{
 		internal string Id;
+		internal int Dpi;
 
 		internal Rectangle Bounds;
 
@@ -21,3 +22,4 @@ namespace WinterDesktop
 		}
 	}
 }
+

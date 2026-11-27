@@ -7,6 +7,12 @@ namespace WinterDesktop
 	internal sealed class Preferences
 	{
 		internal int Snowfall = 1;
+		internal int CordOffset = 3;
+		internal int SagPercent = 100;
+		internal System.Collections.Generic.Dictionary<string,int> Modes = new System.Collections.Generic.Dictionary<string,int>(StringComparer.OrdinalIgnoreCase);
+		internal int Mode(string id) { int m; return Modes.TryGetValue(id,out m) ? m : 0; }
+		internal bool SnowOn(string id) { int m=Mode(id); return m != 3 && m != 4; }
+		internal bool LightsOn(string id) { int m=Mode(id); return m == 0 ? Garland : m == 1 || m == 3; }
 
 		internal bool Interactive = true;
 
@@ -121,7 +127,9 @@ namespace WinterDesktop
 
 		internal Preferences Copy()
 		{
-			return (Preferences)MemberwiseClone();
+			var copy = (Preferences)MemberwiseClone();
+			copy.Modes = new System.Collections.Generic.Dictionary<string,int>(Modes, Modes.Comparer);
+			return copy;
 		}
 
 		internal void CopyFrom(Preferences other)
@@ -144,6 +152,8 @@ namespace WinterDesktop
 			{
 				switch (array[0])
 				{
+				case "cordOffset": CordOffset = Math.Max(0, Math.Min(16,result)); break;
+				case "sagPercent": SagPercent = Math.Max(0, Math.Min(100,result)); break;
 				case "intensity":
 					if (result >= 0 && result <= 200)
 					{
@@ -194,6 +204,7 @@ namespace WinterDesktop
 					break;
 				}
 			}
+			if (array[0].StartsWith("screen.") && int.TryParse(array[1],out result) && result >= 1 && result <= 4) Modes[array[0].Substring(7)] = result;
 			if (bool.TryParse(array[1], out var result2))
 			{
 				switch (array[0])
@@ -219,7 +230,10 @@ namespace WinterDesktop
 
 		internal string ExtraText()
 		{
-			return "\nintensity=" + Intensity + "\nopacity=" + Opacity + "\nperformance=" + Performance + "\ntheme=" + Theme + "\nlampSize=" + LampSize + "\nbrightness=" + Brightness + "\ntwinkle=" + Twinkle + "\nsway=" + Sway + "\nground=" + Ground + "\nwindows=" + Windows + "\nmelt=" + Melt + "\nsettle=" + Settle + "\nautoEconomy=" + AutoEconomy;
+			var extra = new System.Text.StringBuilder();
+			foreach (var pair in Modes) extra.Append("\nscreen.").Append(pair.Key).Append("=").Append(pair.Value);
+			return extra.ToString() + "\ncordOffset=" + CordOffset + "\nsagPercent=" + SagPercent + "\nintensity=" + Intensity + "\nopacity=" + Opacity + "\nperformance=" + Performance + "\ntheme=" + Theme + "\nlampSize=" + LampSize + "\nbrightness=" + Brightness + "\ntwinkle=" + Twinkle + "\nsway=" + Sway + "\nground=" + Ground + "\nwindows=" + Windows + "\nmelt=" + Melt + "\nsettle=" + Settle + "\nautoEconomy=" + AutoEconomy;
 		}
 	}
 }
+

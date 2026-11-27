@@ -43,6 +43,8 @@ namespace WinterDesktop
 				}
 				g.SetClip(region, CombineMode.Replace);
 			}
+			var allEffects = g.Save();
+			ClipEffects(g, world, false);
 			using (SolidBrush solidBrush = new SolidBrush(Color.White))
 			{
 				foreach (ScreenArea screen2 in world.Screens)
@@ -64,7 +66,10 @@ namespace WinterDesktop
 					g.Restore(gstate);
 				}
 			}
-			if (world.GarlandEnabled)
+			g.Restore(allEffects);
+			var lightsState = g.Save();
+			ClipEffects(g, world, true);
+			if (world.GarlandEnabled || world.Display.Modes.Count > 0)
 			{
 				foreach (Surface surface2 in world.Surfaces)
 				{
@@ -78,6 +83,8 @@ namespace WinterDesktop
 					}
 				}
 			}
+			g.Restore(lightsState);
+			ClipEffects(g, world, false);
 			foreach (Surface surface3 in world.Surfaces)
 			{
 				GraphicsState gstate3 = g.Save();
@@ -166,6 +173,13 @@ namespace WinterDesktop
 			}
 		}
 
+		private static void ClipEffects(Graphics g, World world, bool lights)
+		{
+			foreach (var screen in world.Screens)
+				if (lights ? !world.Display.LightsOn(screen.Id) : !world.Display.SnowOn(screen.Id))
+					g.ExcludeClip(screen.Bounds);
+		}
+
 		private static float WireY(float t, float top, float sag)
 		{
 			return top + 3f + sag * 4f * t * (1f - t);
@@ -191,14 +205,14 @@ namespace WinterDesktop
 						{
 							float t = (float)j / 24f;
 							ref PointF reference = ref array[j];
-							reference = surface.CordPoint(i, t);
+							reference = surface.CordPoint(i, t, world.Display);
 						}
 						g.DrawLines(pen, array);
 						int num = 6;
 						for (int k = 0; k < num; k++)
 						{
 							float num2 = ((float)k + 0.5f) / (float)num;
-							PointF pointF = surface.CordPoint(i, num2);
+							PointF pointF = surface.CordPoint(i, num2, world.Display);
 							float x = pointF.X;
 							float y = pointF.Y;
 							GraphicsState gstate = g.Save();
@@ -520,4 +534,5 @@ namespace WinterDesktop
 		}
 	}
 }
+
 

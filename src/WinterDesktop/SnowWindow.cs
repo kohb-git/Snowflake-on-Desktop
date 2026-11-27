@@ -148,6 +148,7 @@ namespace WinterDesktop
 
 		private void ApplyPreferences()
 		{
+			world.Display = preferences;
 			world.GarlandEnabled = preferences.Garland;
 			world.SetIntensity(preferences.Intensity);
 			world.SetAccumulation(preferences.Ground, preferences.Windows);
@@ -175,29 +176,24 @@ namespace WinterDesktop
 		private void ShowScreenStatus()
 		{
 			RefreshWindows();
-			StringBuilder stringBuilder = new StringBuilder("snowlit 1.0.8 · Проверка экранов\n\n");
-			int num = 0;
-			Screen[] allScreens = Screen.AllScreens;
-			foreach (Screen screen in allScreens)
-			{
-				Rectangle workingArea = screen.WorkingArea;
-				workingArea.Offset(-desktop.X, -desktop.Y);
-				bool flag = false;
-				foreach (Rectangle fullScreenCover in world.FullScreenCovers)
-				{
-					if (fullScreenCover.Contains(workingArea))
-					{
-						flag = true;
-					}
-				}
-				stringBuilder.AppendLine("Экран " + ++num + (screen.Primary ? " · основной" : ""));
-				stringBuilder.AppendLine(screen.Bounds.Width + " × " + screen.Bounds.Height + ", положение " + screen.Bounds.X + ", " + screen.Bounds.Y);
-				stringBuilder.AppendLine(flag ? "Эффект скрыт активным полноэкранным окном." : "Эффект разрешён на этом экране.");
-				stringBuilder.AppendLine();
+			var report=new StringBuilder("snowlit 1.1.0 · Диагностика экранов");
+			report.AppendLine().AppendLine();
+			int n=0;
+			foreach (var screen in world.Screens) {
+				var bounds=screen.Bounds; bounds.Offset(desktop.Location);
+				var work=screen.SnowArea; work.Offset(desktop.Location);
+				report.AppendLine("Экран " + ++n + " · " + screen.Id);
+				report.AppendLine("Границы: " + bounds + ". Рабочая область эффекта: " + work);
+				report.AppendLine("Масштаб: " + (screen.Dpi>0 ? Math.Round(screen.Dpi*100.0/96)+"%" : "не определён"));
+				report.AppendLine("Снег: " + (preferences.SnowOn(screen.Id) ? preferences.Intensity+"%" : "выключен") +
+					". Гирлянда: " + (preferences.LightsOn(screen.Id) ? "включена" : "выключена"));
+				report.AppendLine(pauseUntil.HasValue ? "Эффекты скрыты до " + pauseUntil.Value.ToLocalTime().ToShortTimeString() :
+					paused ? "Анимация приостановлена." : Suspended ? "Сеанс заблокирован или компьютер спит." :
+					world.FullScreenCovers.Exists(r=>r.Contains(screen.SnowArea)) ? "Активное полноэкранное окно скрывает эффекты." :
+					"Снег виден на свободном рабочем столе. Гирлянда видна на подходящих неразвёрнутых окнах.");
+				report.AppendLine();
 			}
-			stringBuilder.AppendLine("Снег: " + preferences.Intensity + "%. Гирлянда: " + (preferences.Garland ? "включена" : "выключена") + ".");
-			stringBuilder.AppendLine("Настройки общие для всех экранов. На развёрнутых окнах гирлянда не размещается.");
-			MessageBox.Show(stringBuilder.ToString(), "snowlit · Экраны", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+			DisplayTools.Report(report.ToString());
 		}
 
 		private void OpenOptions()
@@ -249,7 +245,7 @@ namespace WinterDesktop
 			base.TopMost = true;
 			base.AutoScaleMode = AutoScaleMode.None;
 			ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-			contextMenuStrip.Items.Add("snowlit · 1.0.8").Enabled = false;
+			contextMenuStrip.Items.Add("snowlit · 1.1.0").Enabled = false;
 			pauseItem = new ToolStripMenuItem("Приостановить снег");
 			ToolStripMenuItem toolStripMenuItem = pauseItem;
 			EventHandler value = delegate
@@ -258,6 +254,10 @@ namespace WinterDesktop
 			};
 			toolStripMenuItem.Click += value;
 			contextMenuStrip.Items.Add(pauseItem);
+			var timed = new ToolStripMenuItem("Пауза на время");
+			timed.DropDownItems.Add("На 30 минут",null,delegate { PauseFor(30); });
+			timed.DropDownItems.Add("На 2 часа",null,delegate { PauseFor(120); });
+			contextMenuStrip.Items.Add(timed);
 			contextMenuStrip.Items.Add("Настройки…", null, delegate
 			{
 				OpenOptions();
@@ -278,11 +278,11 @@ namespace WinterDesktop
 			});
 			contextMenuStrip.Items.Add("Краткая справка", null, delegate
 			{
-				MessageBox.Show("Запуск: достаточно одного EXE. Установка и интернет не нужны.\n\nПравый щелчок по снежинке в трее — меню.\nДвойной щелчок — пауза; Ctrl+Shift+Q — выход, если сочетание свободно.\n\nВ настройках: снег, накопление, таяние, гирлянда и экономия ресурсов. Параметры общие для всех экранов.\nНа развёрнутых окнах гирлянды нет. Активное полноэкранное окно скрывает эффект на своём мониторе.\n\nДля обновления завершите старую версию через трей. Если включён автозапуск, нажмите «Применить» в настройках новой версии.\nНастройки сохраняются в %LOCALAPPDATA%\\QuietSnow. Перед удалением отключите автозапуск.", "snowlit · Справка", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("Запуск: достаточно одного EXE. Установка и интернет не нужны.\n\nПравый щелчок по снежинке в трее — меню.\nДвойной щелчок — пауза; Ctrl+Shift+Q — выход, если сочетание свободно.\n\nВ настройках: снег, накопление, таяние, гирлянда и экономия ресурсов. Режим эффектов задаётся на вкладке «Экраны».\nНа развёрнутых окнах гирлянды нет. Активное полноэкранное окно скрывает эффект на своём мониторе.\n\nДля обновления завершите старую версию через трей. Если включён автозапуск, нажмите «Применить» в настройках новой версии.\nНастройки сохраняются в %LOCALAPPDATA%\\QuietSnow. Перед удалением отключите автозапуск.", "snowlit · Справка", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			contextMenuStrip.Items.Add("О приложении", null, delegate
 			{
-				MessageBox.Show("snowlit 1.0.8\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("snowlit 1.1.0\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			exitItem = new ToolStripMenuItem("Выход · Ctrl+Shift+Q", null, delegate
 			{
@@ -320,8 +320,18 @@ namespace WinterDesktop
 			}
 		}
 
+		private DateTime? pauseUntil;
+		private void PauseFor(int minutes)
+		{
+			if (!paused) TogglePause();
+			pauseUntil=DateTime.UtcNow.AddMinutes(minutes);
+			pauseItem.Text="Продолжить сейчас (пауза до " + pauseUntil.Value.ToLocalTime().ToShortTimeString() + ")";
+			Render();
+		}
 		private void TogglePause()
 		{
+			pauseUntil=null;
+			lastInactive=false;
 			paused = !paused;
 			world.MotionEffectsEnabled = !paused && !Suspended;
 			world.Release();
@@ -504,7 +514,7 @@ namespace WinterDesktop
 			}
 			world.Pointer = position;
 			world.PointerPresent = !paused && !Suspended && preferences.Interactive && world.InSnowArea(position);
-			bool flag = paused || Suspended || !preferences.Interactive || (!base.Capture && !world.HitTest(position));
+			bool flag = paused || Suspended || !preferences.Interactive || (!base.Capture && (!world.Screens.Exists(s=>s.SnowArea.Contains(position) && preferences.SnowOn(s.Id)) || !world.HitTest(position)));
 			if (flag != mousePassThrough)
 			{
 				mousePassThrough = flag;
@@ -694,6 +704,7 @@ namespace WinterDesktop
 
 		private void Frame()
 		{
+			if (pauseUntil.HasValue && DateTime.UtcNow >= pauseUntil.Value) TogglePause();
 			double totalSeconds = clock.Elapsed.TotalSeconds;
 			double num = Math.Min(1.0 / 30.0, totalSeconds - last);
 			last = totalSeconds;
@@ -749,6 +760,11 @@ namespace WinterDesktop
 		{
 			if (!closing && canvas != null && base.IsHandleCreated)
 			{
+				if (pauseUntil.HasValue) {
+					garlandWindow.FinishFrame(null);
+					canvas.Present(Handle,desktop,0);
+					return;
+				}
 				long timestamp = Stopwatch.GetTimestamp();
 				var separate = garlandWindow.Prepare(this, (byte)(preferences.Opacity * 255 / 100));
 				Painter.Draw(canvas.Graphics, world, separate);
@@ -847,6 +863,7 @@ namespace WinterDesktop
 		}
 	}
 }
+
 
 
 

@@ -15,6 +15,7 @@ namespace WinterDesktop
             internal uint Flags;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] internal string Device;
         }
+        [DllImport("shcore.dll")] private static extern int GetDpiForMonitor(IntPtr monitor, int type, out uint x, out uint y);
         private delegate bool Visit(IntPtr monitor, IntPtr dc, IntPtr rectangle, IntPtr data);
         [DllImport("user32.dll")] private static extern bool EnumDisplayMonitors(IntPtr dc, IntPtr clip, Visit visit, IntPtr data);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
@@ -25,7 +26,10 @@ namespace WinterDesktop
             bool ok = EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, delegate(IntPtr monitor, IntPtr dc, IntPtr rect, IntPtr data) {
                 var info = new MonitorInfo { Size = Marshal.SizeOf(typeof(MonitorInfo)) };
                 if (!GetMonitorInfo(monitor, ref info)) return false;
-                screens.Add(new ScreenArea(info.Device, Rect(info.Bounds), Rect(info.Work)));
+                var screen=new ScreenArea(info.Device, Rect(info.Bounds), Rect(info.Work));
+                try { uint x,y; if(GetDpiForMonitor(monitor,0,out x,out y)==0) screen.Dpi=(int)x; }
+                catch(DllNotFoundException){} catch(EntryPointNotFoundException){}
+                screens.Add(screen);
                 return true;
             }, IntPtr.Zero);
             if (!ok) screens.Clear();
@@ -44,3 +48,4 @@ namespace WinterDesktop
         }
     }
 }
+

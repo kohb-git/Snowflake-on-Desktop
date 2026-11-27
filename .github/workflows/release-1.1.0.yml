@@ -1,0 +1,21 @@
+name: Publish snowlit 1.1.0
+on:
+  push:
+    branches: [main]
+    paths: ['releases/1.1.0/snowlit-1.1.0.exe']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish the Windows executable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          asset=releases/1.1.0/snowlit-1.1.0.exe
+          echo "a8f0ab18c05ef1266b0e9a7eafa5d56970a1b3cf62cfe3a0aca2b02e7ed47710  $asset" | sha256sum -c -
+          gh release create v1.1.0 "$asset" --target "$GITHUB_SHA" --title "snowlit 1.1.0" --notes "Индивидуальные режимы экранов, определение мониторов, предпросмотр и форма гирлянды, пауза на 30 минут или 2 часа, отчёт с DPI и автоматическое сравнение версий."

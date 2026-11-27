@@ -1,20 +1,64 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net;
 using System.Windows.Forms;
 
 namespace WinterDesktop
 {
     internal static class UpdateCheck
     {
-        // The browser can use the user's existing GitHub session for private releases.
         internal const string Latest = "https://github.com/kohb-git/Snowflake-on-Desktop/releases/latest";
+        private static bool checking;
+
+        internal static Version LatestVersion()
+        {
+            ServicePointManager.SecurityProtocol |= (SecurityProtocolType)3072;
+            var request = (HttpWebRequest)WebRequest.Create(Latest);
+            request.Method = "HEAD";
+            request.AllowAutoRedirect = false;
+            request.Timeout = 8000;
+            request.UserAgent = "snowlit-update-check";
+            using (var response = (HttpWebResponse)request.GetResponse())
+            {
+                Uri target;
+                Version version;
+                string prefix = Latest.Replace("/latest", "/tag/v");
+                if (!Uri.TryCreate(new Uri(Latest), response.Headers["Location"], out target) ||
+                    !target.AbsoluteUri.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+                    !Version.TryParse(target.AbsoluteUri.Substring(prefix.Length), out version))
+                    throw new FormatException("Не удалось прочитать версию выпуска.");
+                return version;
+            }
+        }
 
         internal static void OpenLatest()
         {
-            Version installed = typeof(UpdateCheck).Assembly.GetName().Version;
-            string message = "Установлена версия " + installed.ToString(3) +
-                ". Открыть последний выпуск на GitHub? Если доступна более новая версия, скачайте EXE в разделе Assets.";
+            if (checking) return;
+            checking = true;
+            var worker = new BackgroundWorker();
+            worker.DoWork += delegate(object sender, DoWorkEventArgs e) { e.Result = LatestVersion(); };
+            worker.RunWorkerCompleted += delegate(object sender, RunWorkerCompletedEventArgs e)
+            {
+                checking = false;
+                worker.Dispose();
+                if (e.Error != null) {
+                    MessageBox.Show("Не удалось проверить обновления. Попробуйте позже.", "snowlit");
+                    return;
+                }
+                ShowResult((Version)e.Result);
+            };
+            worker.RunWorkerAsync();
+        }
+
+        private static void ShowResult(Version latest)
+        {
+            Version installed = new Version(typeof(UpdateCheck).Assembly.GetName().Version.ToString(3));
+            if (latest <= installed) {
+                MessageBox.Show("Установлена версия " + installed + ". Более новых выпусков нет.", "snowlit");
+                return;
+            }
+            string message = "Доступна версия " + latest + ". Установлена " + installed + ". Открыть страницу скачивания?";
             if (MessageBox.Show(message, "snowlit · Проверить обновления",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes) return;
             try

@@ -30,6 +30,27 @@ namespace WinterDesktop
 			FlowLayoutPanel p = Page(tabControl, "Снег");
 			FlowLayoutPanel p2 = Page(tabControl, "Гирлянда");
 			FlowLayoutPanel flowLayoutPanel = Page(tabControl, "Работа");
+			var screens = Page(tabControl,"Экраны");
+			var identify = new Button { Text="Определить экраны", AutoSize=true };
+			identify.Click += delegate { DisplayTools.Identify(); };
+			screens.Controls.Add(identify);
+			int number=0;
+			foreach(var screen in MonitorLayout.Read()) {
+				string id=screen.Id;
+				Choice(screens,"Экран " + ++number + " · " + id,new[]{"Общие настройки","Снег и гирлянда","Только снег","Только гирлянда","Выключено"},draft.Mode(id),delegate(int mode){
+					if(mode==0) draft.Modes.Remove(id); else draft.Modes[id]=mode;
+				});
+			}
+			var preview = new Panel { Width=470, Height=76, BackColor=Color.FromArgb(34,42,53) };
+			var sample=new Surface("preview",new Rectangle(12,8,444,60),false);
+			preview.Paint += delegate(object sender, PaintEventArgs args) {
+				var model=new World(1){Display=draft,GarlandTheme=draft.Theme,LampScale=draft.LampSize/100f,LightLevel=draft.Brightness/100f};
+				args.Graphics.DrawLine(Pens.SlateGray,12,8,456,8);
+				if(draft.Garland) Painter.DrawGarland(args.Graphics,sample,0,model);
+			};
+			p2.Controls.Add(preview);
+			Slider(p2,"Отступ от верхнего края",0,16,draft.CordOffset,delegate(int v){draft.CordOffset=v;preview.Invalidate();}," пикс.");
+			Slider(p2,"Провисание",0,100,draft.SagPercent,delegate(int v){draft.SagPercent=v;preview.Invalidate();});
 			int intensity = draft.Intensity;
 			Action<int> set = delegate(int v)
 			{
@@ -63,19 +84,19 @@ namespace WinterDesktop
 			Note(p, "Отключение накопления убирает сугробы с выбранных поверхностей. Снеговики остаются. При интенсивности 0 новые снежинки не появляются.");
 			Toggle(p2, "Показывать гирлянду", draft.Garland, delegate(bool b)
 			{
-				draft.Garland = b;
+				draft.Garland = b; preview.Invalidate();
 			});
 			Choice(p2, "Цветовая тема", new string[3] { "Разноцветная", "Тёплый белый", "Ледяная" }, draft.Theme, delegate(int v)
 			{
-				draft.Theme = v;
+				draft.Theme = v; preview.Invalidate();
 			});
 			Slider(p2, "Размер лампочек", 60, 150, draft.LampSize, delegate(int v)
 			{
-				draft.LampSize = v;
+				draft.LampSize = v; preview.Invalidate();
 			});
 			Slider(p2, "Яркость", 10, 100, draft.Brightness, delegate(int v)
 			{
-				draft.Brightness = v;
+				draft.Brightness = v; preview.Invalidate();
 			});
 			Slider(p2, "Скорость мерцания · 0 — постоянный свет", 0, 200, draft.Twinkle, delegate(int v)
 			{
@@ -193,12 +214,12 @@ namespace WinterDesktop
 			p.Controls.Add(c);
 		}
 
-		private static void Slider(FlowLayoutPanel p, string title, int min, int max, int value, Action<int> set)
+		private static void Slider(FlowLayoutPanel p, string title, int min, int max, int value, Action<int> set, string unit = "%")
 		{
 			Label label = new Label
 			{
 				AutoSize = true,
-				Text = title + ": " + value + "%",
+				Text = title + ": " + value + unit,
 				Margin = new Padding(0, 8, 0, 0)
 			};
 			p.Controls.Add(label);
@@ -215,10 +236,11 @@ namespace WinterDesktop
 			};
 			slider.ValueChanged += delegate
 			{
-				label.Text = title + ": " + slider.Value + "%";
+				label.Text = title + ": " + slider.Value + unit;
 				set(slider.Value);
 			};
 			p.Controls.Add(slider);
 		}
 	}
 }
+

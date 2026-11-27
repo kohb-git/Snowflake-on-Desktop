@@ -50,10 +50,10 @@ namespace WinterDesktop
 			}
 		}
 
-		internal PointF CordPoint(int section, float t)
+		internal PointF CordPoint(int section, float t, Preferences display)
 		{
 			float num = (float)Bounds.Width / (float)GarlandSpans;
-			return new PointF((float)Bounds.Left + ((float)section + t) * num + (float)Math.Sin(Math.PI * (double)t) * CordSway[section], (float)(Bounds.Top + 3) + CordDrop[section] * 4f * t * (1f - t));
+			return new PointF((float)Bounds.Left + ((float)section + t) * num + (float)Math.Sin(Math.PI * (double)t) * CordSway[section], (float)(Bounds.Top + display.CordOffset) + display.SagPercent / 100f * CordDrop[section] * 4f * t * (1f - t));
 		}
 
 		internal void AnimateGarland(float dt)
@@ -177,3 +177,4 @@ namespace WinterDesktop
 		}
 	}
 }
+
