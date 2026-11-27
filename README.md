@@ -4,6 +4,8 @@ A Windows desktop snowfall effect with animated lights on window frames.
 
 [Download the latest Windows release](https://github.com/kohb-git/Snowflake-on-Desktop/releases/latest). Exit the previous instance from the tray before launching it. Existing QuietSnow preferences are reused.
 
+Version 1.2.0 rotates ground events between a snowplow, a tractor with a following tipper, and a car that can get stuck in a drift. Events need accumulated snow, roughly two minutes between passes, and a visible ground area. To exercise the event cycle and settings window on Windows, run `dotnet run --project tests/RoadTests.csproj -c Release`.
+
 From version 1.1.1, choose **Проверить обновления…** and confirm to download the latest release, verify its SHA-256 against GitHub release metadata, replace the portable executable at its existing path and restart. The executable folder must be writable. For 1.1.0 and earlier, install 1.1.1 manually once.
 
 Version 1.1.0 adds per-display effect settings, numbered display identification, garland offset and sag with a live preview, timed pauses, and a copyable display report. The tray update check compares the installed version with the latest public GitHub release.

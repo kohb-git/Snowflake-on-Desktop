@@ -49,8 +49,11 @@ namespace WinterDesktop
 			}
 			var preview = new PreviewPanel { Width=470, Height=76, BackColor=Color.FromArgb(34,42,53) };
 			var sample=new Surface("preview",new Rectangle(12,8,444,60),false);
+			var model=new World(1){Display=draft};
 			preview.Paint += delegate(object sender, PaintEventArgs args) {
-				var model=new World(1){Display=draft,GarlandTheme=draft.Theme,LampScale=draft.LampSize/100f,LightLevel=draft.Brightness/100f};
+				model.GarlandTheme=draft.Theme;
+				model.LampScale=draft.LampSize/100f;
+				model.LightLevel=draft.Brightness/100f;
 				args.Graphics.DrawLine(Pens.SlateGray,12,8,456,8);
 				if(draft.Garland) Painter.DrawGarland(args.Graphics,sample,0,model);
 			};
@@ -249,5 +252,6 @@ namespace WinterDesktop
 		}
 	}
 }
+
 
 

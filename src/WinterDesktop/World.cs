@@ -4,11 +4,9 @@ using System.Drawing;
 
 namespace WinterDesktop
 {
-	public sealed class World
+	public sealed partial class World
 	{
-		internal const float PlowWaitSeconds = 120f;
-
-		internal const float PlowSpeed = 145f;
+		
 
 		internal readonly List<Surface> Surfaces = new List<Surface>();
 
@@ -103,6 +101,8 @@ namespace WinterDesktop
 
 		private void EvolveSnow(float dt)
 		{
+			if (!MeltSnow && !NaturalSnow) return;
+			float settlingRate = Math.Min(0.2f, dt * 0.6f);
 			foreach (Surface surface in Surfaces)
 			{
 				if (!surface.Accumulates)
@@ -118,7 +118,7 @@ namespace WinterDesktop
 					if (NaturalSnow && i + 1 < surface.Snow.Length)
 					{
 						float num = surface.Snow[i] - surface.Snow[i + 1];
-						float num2 = Math.Max(0f, Math.Abs(num) - 3f) * Math.Min(0.2f, dt * 0.6f);
+						float num2 = Math.Max(0f, Math.Abs(num) - 3f) * settlingRate;
 						if (num > 0f)
 						{
 							surface.Snow[i] -= num2;
@@ -210,223 +210,6 @@ namespace WinterDesktop
 		public World(int seed)
 		{
 			random = new Random(seed);
-		}
-
-		internal void SetScreens(List<ScreenArea> screens)
-		{
-			windowSnapshot = null;
-			LayoutVersion++;
-			Screens = screens;
-			Flakes.Clear();
-			Plows.Clear();
-			Spray.Clear();
-			Surfaces.RemoveAll((Surface s) => s.Ground);
-			foreach (ScreenArea screen in screens)
-			{
-				Rectangle snowArea = screen.SnowArea;
-				Surface surface = new Surface("ground:" + screen.Id, new Rectangle(snowArea.Left, snowArea.Bottom, snowArea.Width, 2), ground: true);
-				surface.Accumulates = AccumulateGround;
-				Surfaces.Add(surface);
-				Plows.Add(new Snowplow(surface, screen));
-				int num = FlakeCount(screen);
-				for (int i = 0; i < num; i++)
-				{
-					Flakes.Add(NewFlake(screen, scatter: true));
-				}
-			}
-			UpdateAnchors();
-		}
-
-		internal void SetTaskbars(List<Rectangle> taskbars)
-		{
-			bool flag = Taskbars.Count != taskbars.Count;
-			if (!flag)
-			{
-				for (int i = 0; i < taskbars.Count; i++)
-				{
-					if (Taskbars[i] != taskbars[i])
-					{
-						flag = true;
-						break;
-					}
-				}
-			}
-			if (flag)
-			{
-				windowSnapshot = null;
-			}
-			Taskbars.Clear();
-			Taskbars.AddRange(taskbars);
-			foreach (ScreenArea screen in Screens)
-			{
-				Rectangle snowArea = Rectangle.Intersect(screen.Bounds, screen.Work);
-				foreach (Rectangle taskbar in taskbars)
-				{
-					Rectangle rectangle = Rectangle.Intersect(screen.Bounds, taskbar);
-					if (rectangle.Width >= screen.Bounds.Width / 2 && rectangle.Height > 0 && rectangle.Top > screen.Bounds.Top + screen.Bounds.Height / 2)
-					{
-						snowArea.Height = Math.Max(0, Math.Min(snowArea.Bottom, rectangle.Top) - snowArea.Top);
-					}
-				}
-				screen.SnowArea = snowArea;
-				foreach (Surface surface in Surfaces)
-				{
-					if (surface.Id == "ground:" + screen.Id)
-					{
-						surface.Resize(new Rectangle(snowArea.Left, snowArea.Bottom, snowArea.Width, 2));
-					}
-				}
-			}
-			UpdateAnchors();
-		}
-
-		private Flake NewFlake(ScreenArea screen, bool scatter)
-		{
-			Rectangle snowArea = screen.SnowArea;
-			Flake flake = new Flake();
-			flake.Screen = screen;
-			flake.X = (float)snowArea.Left + (float)random.NextDouble() * (float)snowArea.Width;
-			flake.Y = (float)(snowArea.Top - 8) + (scatter ? ((float)random.NextDouble() * (float)snowArea.Height) : 0f);
-			flake.Speed = 25f + (float)random.NextDouble() * 65f;
-			flake.Radius = 0.8f + (float)random.NextDouble() * 1.5f;
-			flake.Phase = (float)random.NextDouble() * 6.28f;
-			flake.Alpha = 135 + random.Next(110);
-			return flake;
-		}
-
-		public void SetWindows(List<WindowInfo> infos)
-		{
-			bool flag = windowSnapshot != null && windowSnapshot.Count == infos.Count;
-			if (flag)
-			{
-				for (int i = 0; i < infos.Count; i++)
-				{
-					WindowInfo windowInfo = windowSnapshot[i];
-					WindowInfo windowInfo2 = infos[i];
-					if (windowInfo.Id != windowInfo2.Id || windowInfo.Bounds != windowInfo2.Bounds || windowInfo.Shelf != windowInfo2.Shelf || windowInfo.Maximized != windowInfo2.Maximized || windowInfo.SuppressScreen != windowInfo2.SuppressScreen)
-					{
-						flag = false;
-						break;
-					}
-				}
-			}
-			if (flag)
-			{
-				return;
-			}
-			windowSnapshot = new List<WindowInfo>();
-			foreach (WindowInfo info in infos)
-			{
-				windowSnapshot.Add(new WindowInfo(info.Id, info.Bounds, info.Shelf, info.Maximized)
-				{
-					SuppressScreen = info.SuppressScreen
-				});
-			}
-			LayoutVersion++;
-			Dictionary<string, Surface> dictionary = new Dictionary<string, Surface>();
-			foreach (Surface surface in Surfaces)
-			{
-				if (!surface.Ground)
-				{
-					dictionary[surface.Id] = surface;
-				}
-			}
-			List<Surface> list = new List<Surface>();
-			List<Rectangle> list2 = new List<Rectangle>();
-			List<string> list3 = new List<string>();
-			WindowCovers.Clear();
-			WindowRects.Clear();
-			FullScreenCovers.Clear();
-			foreach (WindowInfo info2 in infos)
-			{
-				WindowCovers.Add(info2.Bounds);
-				WindowRects[info2.Id] = info2.Bounds;
-				if (info2.Shelf && info2.SuppressScreen)
-				{
-					foreach (ScreenArea screen in Screens)
-					{
-						Rectangle bounds = screen.Bounds;
-						Rectangle bounds2 = info2.Bounds;
-						if (bounds.Width > 0 && bounds.Height > 0 && bounds2.Left <= bounds.Left + 1 && bounds2.Top <= bounds.Top + 1 && bounds2.Right >= bounds.Right - 1 && bounds2.Bottom >= bounds.Bottom - 1)
-						{
-							FullScreenCovers.Add(bounds);
-						}
-					}
-				}
-				if (CanCollectSnow(info2))
-				{
-					if (!dictionary.TryGetValue(info2.Id, out var value))
-					{
-						value = new Surface(info2.Id, info2.Bounds, ground: false);
-					}
-					else
-					{
-						Rectangle bounds3 = value.Bounds;
-						if (MotionEffectsEnabled)
-						{
-							value.NudgeGarland((float)(info2.Bounds.X - bounds3.X) * SwayStrength, (float)(info2.Bounds.Y - bounds3.Y) * SwayStrength, (float)(info2.Bounds.Width - bounds3.Width) * SwayStrength);
-						}
-						if (MotionEffectsEnabled && bounds3.Width != info2.Bounds.Width)
-						{
-							value.GarlandVelocity = Math.Max(-90f, Math.Min(90f, value.GarlandVelocity + (float)(info2.Bounds.Width - bounds3.Width) * 0.3f * SwayStrength));
-						}
-						if (bounds3.Width != info2.Bounds.Width)
-						{
-							ResizeSnow(value, info2.Bounds);
-						}
-						else
-						{
-							value.Resize(info2.Bounds);
-						}
-						value.Covers = new List<Rectangle>(list2);
-						value.FrontWindows = new List<string>(list3);
-						if (MotionEffectsEnabled && bounds3.Size == info2.Bounds.Size)
-						{
-							Shake(value, bounds3);
-						}
-					}
-					value.Accumulates = AccumulateWindows;
-					dictionary.Remove(info2.Id);
-					value.Covers = new List<Rectangle>(list2);
-					value.FrontWindows = new List<string>(list3);
-					list.Add(value);
-				}
-				list2.Add(info2.Bounds);
-				list3.Add(info2.Id);
-			}
-			foreach (Surface value2 in dictionary.Values)
-			{
-				Shed(value2);
-			}
-			foreach (Surface surface2 in Surfaces)
-			{
-				if (surface2.Ground)
-				{
-					surface2.Covers = new List<Rectangle>(list2);
-					surface2.FrontWindows = new List<string>(list3);
-					list.Add(surface2);
-				}
-			}
-			Surfaces.Clear();
-			Surfaces.AddRange(list);
-			UpdateAnchors();
-		}
-
-		private bool CanCollectSnow(WindowInfo info)
-		{
-			if (!info.Shelf || info.Maximized)
-			{
-				return false;
-			}
-			foreach (ScreenArea screen in Screens)
-			{
-				Rectangle snowArea = screen.SnowArea;
-				if (info.Bounds.Right > snowArea.Left && info.Bounds.Left < snowArea.Right && info.Bounds.Top >= snowArea.Top - 2 && info.Bounds.Top <= snowArea.Top + 2)
-				{
-					return false;
-				}
-			}
-			return true;
 		}
 
 		private void ResizeSnow(Surface source, Rectangle target)
@@ -598,71 +381,8 @@ namespace WinterDesktop
 
 		private void StepPlows(float dt)
 		{
-			foreach (Snowplow plow in Plows)
-			{
-				Surface ground = plow.Ground;
-				if (!InSnowArea(new PointF((float)ground.Bounds.Left + (float)ground.Bounds.Width * 0.5f, ground.Bounds.Top - 2)))
-				{
-					continue;
-				}
-				if (!plow.Active)
-				{
-					float num = 0f;
-					float[] snow = ground.Snow;
-					foreach (float num2 in snow)
-					{
-						num += num2;
-					}
-					if (num < 0.1f)
-					{
-						plow.SnowSeconds = 0.0;
-						continue;
-					}
-					plow.SnowSeconds += dt;
-					if (plow.SnowSeconds < 120.0 || num < (float)ground.Snow.Length * 0.15f)
-					{
-						continue;
-					}
-					plow.Active = true;
-					plow.X = ground.Bounds.Left - 64;
-					plow.Travel = 0f;
-					plow.SnowSeconds = 0.0;
-				}
-				float num3 = plow.X + 48f;
-				plow.Travel += 145f * dt;
-				plow.X = (float)(ground.Bounds.Left - 64) + plow.Travel;
-				float num4 = plow.X + 52f;
-				float num5 = 0f;
-				int num6 = Math.Max(0, (int)Math.Floor((num3 - 4f - (float)ground.Bounds.Left) / (float)Math.Max(1, ground.Bounds.Width) * (float)(ground.Snow.Length - 1)));
-				int num7 = Math.Min(ground.Snow.Length - 1, (int)Math.Ceiling((num4 - (float)ground.Bounds.Left) / (float)Math.Max(1, ground.Bounds.Width) * (float)(ground.Snow.Length - 1)));
-				for (int j = num6; j <= num7; j++)
-				{
-					num5 += ground.Snow[j];
-					ground.Snow[j] = 0f;
-				}
-				if (num5 > 0.01f)
-				{
-					int num8 = Math.Min(3, 1 + (int)(num5 * 0.08f));
-					for (int k = 0; k < num8; k++)
-					{
-						Spray.Add(new PlowSpray
-						{
-							Screen = plow.Screen,
-							X = plow.X + 52f,
-							Y = ground.Bounds.Top - 9,
-							VX = 35f + (float)random.NextDouble() * 55f,
-							VY = -45f - (float)random.NextDouble() * 85f,
-							Radius = 1f + (float)random.NextDouble() * 1.8f,
-							Life = 0.45f + (float)random.NextDouble() * 0.6f
-						});
-					}
-				}
-				if (plow.X > (float)(ground.Bounds.Right + 64))
-				{
-					plow.Active = false;
-					plow.SnowSeconds = 0.0;
-				}
-			}
+			foreach (var vehicle in Plows)
+				if (Display.SnowOn(vehicle.Screen.Id)) vehicle.Step(dt, Spray, random);
 			for (int num9 = Spray.Count - 1; num9 >= 0; num9--)
 			{
 				PlowSpray plowSpray = Spray[num9];
@@ -877,11 +597,12 @@ namespace WinterDesktop
 			EvolveSnow(dt);
 			StepDust(dt);
 			PushSettledSnow();
+			double wind = Math.Sin(time * 0.22) * 14.0;
 			for (int i = 0; i < Flakes.Count; i++)
 			{
 				Flake flake = Flakes[i];
 				float y = flake.Y;
-				flake.X += (float)(Math.Sin(time * 0.22) * 14.0 + Math.Sin(time * 0.75 + (double)flake.Phase) * 8.0) * dt;
+				flake.X += (float)(wind + Math.Sin(time * 0.75 + (double)flake.Phase) * 8.0) * dt;
 				flake.Y += flake.Speed * dt;
 				if (flake.Y + flake.Radius < (float)flake.Screen.SnowArea.Top)
 				{
@@ -902,7 +623,7 @@ namespace WinterDesktop
 				float num5 = float.MaxValue;
 				foreach (Surface surface4 in Surfaces)
 				{
-					if (surface4.Accumulates)
+					if (surface4.Accumulates && y <= surface4.Bounds.Top && flake.X >= surface4.Bounds.Left + 3 && flake.X <= surface4.Bounds.Right - 3)
 					{
 						float num6 = surface4.Top(flake.X);
 						if (y <= num6 && flake.Y >= num6 && num6 < num5 && surface4.Visible(flake.X, num6 - 0.5f))
@@ -1227,9 +948,7 @@ namespace WinterDesktop
 			}
 			foreach (Snowplow plow in Plows)
 			{
-				plow.Active = false;
-				plow.SnowSeconds = 0.0;
-				plow.Travel = 0f;
+				plow.Reset();
 			}
 			Held = null;
 			Balls.Clear();
@@ -1240,4 +959,7 @@ namespace WinterDesktop
 		}
 	}
 }
+
+
+
 

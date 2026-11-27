@@ -1,0 +1,21 @@
+name: Publish snowlit 1.2.0
+on:
+  push:
+    branches: [main]
+    paths: ['releases/1.2.0/snowlit-1.2.0.exe']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish the Windows executable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          asset=releases/1.2.0/snowlit-1.2.0.exe
+          echo "144204d6278d06f06b42f3a5869377708bc27ca1d65ff96942412ff2666814d0  $asset" | sha256sum -c -
+          gh release create v1.2.0 "$asset" --target "$GITHUB_SHA" --title "snowlit 1.2.0" --notes "Трактор с самосвалом и застревающая в сугробе легковушка. Оптимизирован расчёт снега, открытие настроек отложено до закрытия меню трея, сообщение о занятой горячей клавише перенесено в подсказку."

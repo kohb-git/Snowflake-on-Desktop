@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <TargetFramework>net40</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Exe</OutputType>
+    <StartupObject>WinterDesktop.RoadTests</StartupObject>
+    <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../src/WinterDesktop/*.cs" />
+    <Reference Include="System.Web.Extensions" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net40" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
