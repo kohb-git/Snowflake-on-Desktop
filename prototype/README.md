@@ -4,7 +4,7 @@ A Windows desktop snowfall prototype with snow accumulation and animated lights 
 
 ## Try the prototype
 
-Exit any running copy using the snowflake icon in the system tray, then start `prototype/QuietSnow-1.0.4-screen-test.exe`. Right-click the tray icon for settings or double-click to pause. This snapshot contains the compiled test build and its measurement script. The original C# project is still needed for a reproducible build.
+Exit any running copy using the snowflake icon in the system tray, then start `prototype/QuietSnow-1.0.4-screen-test.exe`. Right-click the tray icon for settings or double-click to pause. This snapshot contains the compiled test build and its measurement script. The recovered C# project is in the src directory at the repository root.
 
 ## Test on Windows
 
