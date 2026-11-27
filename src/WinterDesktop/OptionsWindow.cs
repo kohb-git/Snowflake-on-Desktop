@@ -16,7 +16,7 @@ namespace WinterDesktop
 		{
 			draft = current.Copy();
 			commit = save;
-			Text = "Тихий снег · Настройки";
+			Text = "snowlit · Настройки";
 			Font = new Font("Segoe UI", 10f);
 			base.AutoScaleMode = AutoScaleMode.Dpi;
 			base.ClientSize = new Size(570, 600);

@@ -1,8 +1,10 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyFileVersion("1.0.4.0")]
-[assembly: AssemblyInformationalVersion("1.0.4")]
-[assembly: AssemblyProduct("Тихий снег")]
-[assembly: AssemblyTitle("Тихий снег")]
-[assembly: AssemblyVersion("1.0.4.0")]
+[assembly: AssemblyFileVersion("1.0.7.0")]
+[assembly: AssemblyInformationalVersion("1.0.7")]
+[assembly: AssemblyProduct("snowlit")]
+[assembly: AssemblyTitle("snowlit")]
+[assembly: AssemblyVersion("1.0.7.0")]
+
+

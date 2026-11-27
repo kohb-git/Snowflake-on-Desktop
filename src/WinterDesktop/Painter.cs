@@ -16,7 +16,7 @@ namespace WinterDesktop
 			Color.FromArgb(117, 185, 255)
 		};
 
-		internal static void Draw(Graphics g, World world)
+		internal static void Draw(Graphics g, World world, Surface separate = null)
 		{
 			g.ResetTransform();
 			g.ResetClip();
@@ -68,7 +68,7 @@ namespace WinterDesktop
 			{
 				foreach (Surface surface2 in world.Surfaces)
 				{
-					if (!surface2.Ground)
+					if (!surface2.Ground && surface2 != separate)
 					{
 						GraphicsState gstate2 = g.Save();
 						Clip(g, surface2);
@@ -176,7 +176,7 @@ namespace WinterDesktop
 			return 0.58f + 0.42f * (float)(0.5 + 0.5 * Math.Sin(time * 1.7 + (double)bulb * 0.72));
 		}
 
-		private static void DrawGarland(Graphics g, Surface surface, double time, World world)
+		internal static void DrawGarland(Graphics g, Surface surface, double time, World world)
 		{
 			_ = surface.Bounds;
 			int garlandSpans = surface.GarlandSpans;
@@ -520,3 +520,4 @@ namespace WinterDesktop
 		}
 	}
 }
+

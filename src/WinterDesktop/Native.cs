@@ -6,6 +6,26 @@ namespace WinterDesktop
 {
 	public static class Native
 	{
+		[StructLayout(LayoutKind.Sequential)]
+		private struct GuiThreadInfo
+		{
+			internal int Size;
+			internal uint Flags;
+			internal IntPtr Active, Focus, Capture, MenuOwner, MoveSize, Caret;
+			internal RECT CaretRect;
+		}
+
+		[DllImport("user32.dll")]
+		private static extern bool GetGUIThreadInfo(uint threadId, ref GuiThreadInfo info);
+
+		internal static bool HasWindowCapture(IntPtr window)
+		{
+			var info = new GuiThreadInfo { Size = Marshal.SizeOf(typeof(GuiThreadInfo)) };
+			uint thread = GetWindowThreadProcessId(window, out _);
+			return thread != 0 && GetGUIThreadInfo(thread, ref info) &&
+				(info.MoveSize == window || info.Capture == window || (info.Flags & 2) != 0);
+		}
+
 		public struct RECT
 		{
 			public int Left;
@@ -142,6 +162,9 @@ namespace WinterDesktop
 		internal static extern int GetWindowLong(IntPtr h, int index);
 
 		[DllImport("user32.dll")]
+		internal static extern bool GetLayeredWindowAttributes(IntPtr window, out uint colorKey, out byte alpha, out uint flags);
+
+		[DllImport("user32.dll")]
 		internal static extern int SetWindowLong(IntPtr h, int index, int value);
 
 		[DllImport("user32.dll")]
@@ -203,3 +226,4 @@ namespace WinterDesktop
 		}
 	}
 }
+

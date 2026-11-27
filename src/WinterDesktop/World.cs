@@ -1000,7 +1000,9 @@ namespace WinterDesktop
 			float num = float.MaxValue;
 			foreach (ScreenArea screen in Screens)
 			{
-				float num2 = Math.Abs(b.X - Math.Max(screen.Work.Left, Math.Min(screen.Work.Right, b.X)));
+				float dx = b.X - Math.Max(screen.Work.Left, Math.Min(screen.Work.Right, b.X));
+				float dy = b.Y - Math.Max(screen.Work.Top, Math.Min(screen.Work.Bottom, b.Y));
+				float num2 = dx * dx + dy * dy;
 				if (num2 < num)
 				{
 					num = num2;

@@ -28,7 +28,7 @@ namespace WinterDesktop
 
 		public static bool Refresh(SnowWindow form)
 		{
-			if (Stopwatch.GetTimestamp() >= nextScan || foreground != Native.GetForegroundWindow() || form.locationHook == IntPtr.Zero)
+			if (Stopwatch.GetTimestamp() >= nextScan || foreground != Native.GetForegroundWindow())
 			{
 				Scan(form);
 				return true;

@@ -46,7 +46,7 @@ namespace WinterDesktop
 					catch (UnauthorizedAccessException)
 					{
 					}
-					MessageBox.Show("Не удалось продолжить работу. Перезапустите приложение.\nЕсли журнал удалось сохранить, он находится в %LOCALAPPDATA%\\QuietSnow\\error.log.", "Тихий снег", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+					MessageBox.Show("Не удалось продолжить работу. Перезапустите приложение.\nЕсли журнал удалось сохранить, он находится в %LOCALAPPDATA%\\QuietSnow\\error.log.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Hand);
 				}
 			}
 		}

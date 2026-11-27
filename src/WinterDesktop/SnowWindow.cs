@@ -50,6 +50,7 @@ namespace WinterDesktop
 
 		private LayerCanvas canvas;
 
+		private readonly GarlandWindow garlandWindow = new GarlandWindow();
 		public Rectangle desktop;
 
 		private string screenLayout;
@@ -174,7 +175,7 @@ namespace WinterDesktop
 		private void ShowScreenStatus()
 		{
 			RefreshWindows();
-			StringBuilder stringBuilder = new StringBuilder("Тихий снег 1.0.4 · Проверка экранов\n\n");
+			StringBuilder stringBuilder = new StringBuilder("snowlit 1.0.7 · Проверка экранов\n\n");
 			int num = 0;
 			Screen[] allScreens = Screen.AllScreens;
 			foreach (Screen screen in allScreens)
@@ -196,7 +197,7 @@ namespace WinterDesktop
 			}
 			stringBuilder.AppendLine("Снег: " + preferences.Intensity + "%. Гирлянда: " + (preferences.Garland ? "включена" : "выключена") + ".");
 			stringBuilder.AppendLine("Настройки общие для всех экранов. На развёрнутых окнах гирлянда не размещается.");
-			MessageBox.Show(stringBuilder.ToString(), "Тихий снег · Экраны", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+			MessageBox.Show(stringBuilder.ToString(), "snowlit · Экраны", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 		}
 
 		private void OpenOptions()
@@ -211,7 +212,7 @@ namespace WinterDesktop
 				Preferences preferences = this.preferences.Copy();
 				if (!next.Save(Preferences.FilePath))
 				{
-					MessageBox.Show(options, "Не удалось сохранить настройки.", "Тихий снег");
+					MessageBox.Show(options, "Не удалось сохранить настройки.", "snowlit");
 					return false;
 				}
 				try
@@ -228,7 +229,7 @@ namespace WinterDesktop
 						throw;
 					}
 					preferences.Save(Preferences.FilePath);
-					MessageBox.Show(options, "Не удалось изменить автозапуск: " + ex.Message, "Тихий снег");
+					MessageBox.Show(options, "Не удалось изменить автозапуск: " + ex.Message, "snowlit");
 					return false;
 				}
 				this.preferences.CopyFrom(next);
@@ -241,13 +242,14 @@ namespace WinterDesktop
 
 		public SnowWindow()
 		{
-			Text = "Тихий снег";
+			Text = "snowlit";
 			base.FormBorderStyle = FormBorderStyle.None;
 			base.ShowInTaskbar = false;
+			base.StartPosition = FormStartPosition.Manual;
 			base.TopMost = true;
 			base.AutoScaleMode = AutoScaleMode.None;
 			ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-			contextMenuStrip.Items.Add("Тихий снег · 1.0.4").Enabled = false;
+			contextMenuStrip.Items.Add("snowlit · 1.0.7").Enabled = false;
 			pauseItem = new ToolStripMenuItem("Приостановить снег");
 			ToolStripMenuItem toolStripMenuItem = pauseItem;
 			EventHandler value = delegate
@@ -272,11 +274,11 @@ namespace WinterDesktop
 			});
 			contextMenuStrip.Items.Add("Краткая справка", null, delegate
 			{
-				MessageBox.Show("Запуск: достаточно одного EXE. Установка и интернет не нужны.\n\nПравый щелчок по снежинке в трее — меню.\nДвойной щелчок — пауза; Ctrl+Shift+Q — выход, если сочетание свободно.\n\nВ настройках: снег, накопление, таяние, гирлянда и экономия ресурсов. Параметры общие для всех экранов.\nНа развёрнутых окнах гирлянды нет. Активное полноэкранное окно скрывает эффект на своём мониторе.\n\nДля обновления завершите старую версию через трей. Если включён автозапуск, нажмите «Применить» в настройках новой версии.\nНастройки сохраняются в %LOCALAPPDATA%\\QuietSnow. Перед удалением отключите автозапуск.", "Тихий снег · Справка", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("Запуск: достаточно одного EXE. Установка и интернет не нужны.\n\nПравый щелчок по снежинке в трее — меню.\nДвойной щелчок — пауза; Ctrl+Shift+Q — выход, если сочетание свободно.\n\nВ настройках: снег, накопление, таяние, гирлянда и экономия ресурсов. Параметры общие для всех экранов.\nНа развёрнутых окнах гирлянды нет. Активное полноэкранное окно скрывает эффект на своём мониторе.\n\nДля обновления завершите старую версию через трей. Если включён автозапуск, нажмите «Применить» в настройках новой версии.\nНастройки сохраняются в %LOCALAPPDATA%\\QuietSnow. Перед удалением отключите автозапуск.", "snowlit · Справка", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			contextMenuStrip.Items.Add("О приложении", null, delegate
 			{
-				MessageBox.Show("Тихий снег 1.0.4\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "Тихий снег", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("snowlit 1.0.7\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			exitItem = new ToolStripMenuItem("Выход · Ctrl+Shift+Q", null, delegate
 			{
@@ -285,7 +287,7 @@ namespace WinterDesktop
 			contextMenuStrip.Items.Add(exitItem);
 			appIcon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
 			tray.Icon = appIcon;
-			tray.Text = "Тихий снег · снег идёт";
+			tray.Text = "snowlit · снег идёт";
 			tray.ContextMenuStrip = contextMenuStrip;
 			tray.DoubleClick += delegate
 			{
@@ -310,7 +312,7 @@ namespace WinterDesktop
 		{
 			if (!preferences.Save(Preferences.FilePath))
 			{
-				tray.ShowBalloonTip(4000, "Тихий снег", "Не удалось сохранить настройки. Они действуют до выхода.", ToolTipIcon.Warning);
+				tray.ShowBalloonTip(4000, "snowlit", "Не удалось сохранить настройки. Они действуют до выхода.", ToolTipIcon.Warning);
 			}
 		}
 
@@ -322,7 +324,7 @@ namespace WinterDesktop
 			base.Capture = false;
 			pauseItem.Text = (paused ? "Продолжить снег" : "Приостановить снег");
 			pauseItem.Checked = paused;
-			tray.Text = (paused ? "Тихий снег · пауза" : "Тихий снег · снег идёт");
+			tray.Text = (paused ? "snowlit · пауза" : "snowlit · снег идёт");
 			UpdateMouseAccess();
 		}
 
@@ -333,13 +335,24 @@ namespace WinterDesktop
 			if (!Native.RegisterHotKey(base.Handle, 2, 16390u, 81u))
 			{
 				exitItem.Text = "Выход";
-				tray.ShowBalloonTip(5000, "Тихий снег", "Ctrl+Shift+Q уже занято. Для выхода используйте меню значка в трее.", ToolTipIcon.Info);
+				tray.ShowBalloonTip(5000, "snowlit", "Ctrl+Shift+Q уже занято. Для выхода используйте меню значка в трее.", ToolTipIcon.Info);
 			}
+			bool moveQueued = false;
 			locationCallback = delegate(IntPtr hook, uint evt, IntPtr window, int obj, int child, uint thread, uint time)
 			{
 				if (!closing && !Suspended && !paused && obj == 0 && child == 0 && lastNativeRects.ContainsKey(window))
 				{
+					garlandWindow.Follow(this, window);
 					WindowTracking.Mark(window);
+					if (!moveQueued)
+					{
+						moveQueued = true;
+						BeginInvoke((Action)delegate
+						{
+							moveQueued = false;
+							if (!closing && !Suspended && !paused) WindowTracking.MoveRefresh(this);
+						});
+					}
 				}
 			};
 			locationHook = Native.SetWinEventHook(32779u, 32779u, IntPtr.Zero, locationCallback, 0u, 0u, 2u);
@@ -380,14 +393,11 @@ namespace WinterDesktop
 
 		private void SetupScreens()
 		{
-			Rectangle virtualScreen = SystemInformation.VirtualScreen;
+			var list = MonitorLayout.Read();
+			if (list.Count == 0) return;
+			Rectangle virtualScreen = MonitorLayout.Normalize(list);
 			string text = virtualScreen.ToString();
-			Screen[] allScreens = Screen.AllScreens;
-			foreach (Screen screen in allScreens)
-			{
-				object obj = text;
-				text = string.Concat(obj, "|", screen.DeviceName, screen.Bounds, screen.WorkingArea);
-			}
+			foreach (var screen in list) text += "|" + screen.Id + screen.Bounds + screen.Work;
 			if (!(text == screenLayout) || canvas == null)
 			{
 				LayerCanvas layerCanvas = new LayerCanvas(virtualScreen.Width, virtualScreen.Height);
@@ -408,16 +418,6 @@ namespace WinterDesktop
 					lastNativeRects.Clear();
 				}
 				screenLayout = text;
-				List<ScreenArea> list = new List<ScreenArea>();
-				Screen[] allScreens2 = Screen.AllScreens;
-				foreach (Screen screen2 in allScreens2)
-				{
-					Rectangle bounds = screen2.Bounds;
-					Rectangle workingArea = screen2.WorkingArea;
-					bounds.Offset(-desktop.X, -desktop.Y);
-					workingArea.Offset(-desktop.X, -desktop.Y);
-					list.Add(new ScreenArea(screen2.DeviceName, bounds, workingArea));
-				}
 				world.SetScreens(list);
 			}
 		}
@@ -581,7 +581,7 @@ namespace WinterDesktop
 			Native.EnumWindows(delegate(IntPtr h, IntPtr p)
 			{
 				Native.GetWindowThreadProcessId(h, out var process);
-				if ((process == processId && h == base.Handle) || !Native.IsWindowVisible(h) || Native.IsIconic(h))
+				if ((process == processId && (h == base.Handle || (garlandWindow.IsHandleCreated && h == garlandWindow.Handle))) || !Native.IsWindowVisible(h) || Native.IsIconic(h))
 				{
 					return true;
 				}
@@ -597,7 +597,12 @@ namespace WinterDesktop
 					return true;
 				}
 				int windowLong = Native.GetWindowLong(h, -20);
-				if (IsTransparentSnapHost(text, windowLong))
+				bool invisibleLayer = (windowLong & 0x80000) != 0 &&
+					Native.GetLayeredWindowAttributes(h, out _, out byte alpha, out uint flags) &&
+					(flags & 2) != 0 && alpha == 0;
+				const int clickThroughToolLayer = 0x80000 | 0x20 | 0x80;
+				bool overlay = (windowLong & clickThroughToolLayer) == clickThroughToolLayer;
+				if (overlay || invisibleLayer || IsTransparentSnapHost(text, windowLong))
 				{
 					return true;
 				}
@@ -741,8 +746,10 @@ namespace WinterDesktop
 			if (!closing && canvas != null && base.IsHandleCreated)
 			{
 				long timestamp = Stopwatch.GetTimestamp();
-				Painter.Draw(canvas.Graphics, world);
+				var separate = garlandWindow.Prepare(this, (byte)(preferences.Opacity * 255 / 100));
+				Painter.Draw(canvas.Graphics, world, separate);
 				canvas.Present(base.Handle, desktop, (byte)(preferences.Opacity * 255 / 100));
+				garlandWindow.FinishFrame(separate);
 				lastPresent = clock.Elapsed.TotalSeconds;
 				lastRenderedLayout = world.LayoutVersion;
 				PresentedFrames++;
@@ -796,6 +803,7 @@ namespace WinterDesktop
 		protected override void OnFormClosed(FormClosedEventArgs e)
 		{
 			closing = true;
+			garlandWindow.Dispose();
 			if (options != null)
 			{
 				options.Close();
@@ -835,3 +843,6 @@ namespace WinterDesktop
 		}
 	}
 }
+
+
+
