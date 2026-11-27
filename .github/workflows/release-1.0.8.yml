@@ -1,0 +1,21 @@
+name: Publish snowlit 1.0.8
+on:
+  push:
+    branches: [main]
+    paths: ['releases/1.0.8/snowlit-1.0.8.exe']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish the Windows executable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          asset=releases/1.0.8/snowlit-1.0.8.exe
+          echo "a8904ad5fcc1c5e406472d8b4ee4076043242c1a86b9df9047db81f50eafded8  $asset" | sha256sum -c -
+          gh release create v1.0.8 "$asset" --target "$GITHUB_SHA" --title "snowlit 1.0.8" --notes "В меню снежинки появился пункт «Проверить обновления…». Он показывает установленную версию и открывает последний стабильный выпуск в браузере. Для установки скачайте EXE, завершите предыдущую копию через трей и запустите новую."
