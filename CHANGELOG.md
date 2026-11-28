@@ -2,6 +2,7 @@
 
 | Версия / Version | Русский | English |
 | --- | --- | --- |
+| [1.4.2](docs/releases/1.4.2.md) | При пробуксовке заднее колесо выбрасывает снег. | A spinning rear wheel kicks up snow when the car loses traction. |
 | [1.4.1](docs/releases/1.4.1.md) | Окна перекрывают снег, выброшенный трактором. | Windows now hide snow thrown by the tractor. |
 | [1.4.0](docs/releases/1.4.0.md) | Водитель вызывает пикап и включает аварийку. | A stranded driver calls a pickup and flashes the hazard lights. |
 | [1.3.1](docs/releases/1.3.1.md) | Плавная заливка высоких сугробов. | Smooth shading on tall drifts. |

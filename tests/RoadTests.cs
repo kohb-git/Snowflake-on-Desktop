@@ -57,11 +57,17 @@ namespace WinterDesktop {
  var car=new Snowplow(ground,new ScreenArea("test",new Rectangle(-400,0,800,600),new Rectangle(-400,0,800,600)));
  car.Demonstrate();
  for(int j=0;j<ground.Snow.Length;j++)ground.Snow[j]=(j>35 && j<95)?depth:0;
- bool slip=false,tow=false,hitch=false;float tilt=0;
+ bool tyreSpray=false,slip=false,tow=false,hitch=false;float tilt=0;
  for(int tick=0;tick<12000 && car.Active;tick++){
- car.Step(1f/120,w.Spray,random);slip|=car.Stuck;tow|=car.Rescue==Snowplow.RescuePhase.Tow;
+ int before=w.Spray.Count;
+ car.Step(1f/120,w.Spray,random);
+ for(int i=before;i<w.Spray.Count;i++){
+ if(!car.Wheelspin || w.Spray[i].VX>=0 || w.Spray[i].VY>=0)throw new Exception("Unexpected tyre spray");
+ }
+ tyreSpray|=w.Spray.Count>before;
+ slip|=car.Stuck;tow|=car.Rescue==Snowplow.RescuePhase.Tow;
  hitch|=car.Rescue==Snowplow.RescuePhase.Hitch;tilt=Math.Max(tilt,Math.Abs(car.Pitch));}
- if(car.Active || slip!=(depth>=4.5f) || tow!=(depth>=10) || hitch!=tow ||
+ if(tyreSpray!=(depth>=4.5f) || car.Active || slip!=(depth>=4.5f) || tow!=(depth>=10) || hitch!=tow ||
  (depth>0 && (ground.Snow[60]>=depth || tilt==0)))throw new Exception("Collision failed: "+depth);
  Console.WriteLine("Depth "+depth+": slip="+slip+", tow="+tow+", track="+ground.Snow[60]);}
  using(var image=new Bitmap(320,240))using(var g=Graphics.FromImage(image)){

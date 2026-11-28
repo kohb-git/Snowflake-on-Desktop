@@ -11,6 +11,7 @@ namespace WinterDesktop
         internal bool Active;
         internal float X, Travel, Load, StuckTime;
         internal bool Stuck { get { return StuckTime > 0; } }
+        internal bool Wheelspin { get { return Kind==RoadEvent.Car && Stuck && Rescue==RescuePhase.None; } }
         internal RoadEvent Kind;
         private RoadEvent next;
         internal enum RescuePhase { None, Exit, Call, Approach, Hitch, Tow }
@@ -121,8 +122,20 @@ namespace WinterDesktop
                 Start(Kind);
             }
             float previous=X;
+            float previousSlip=StuckTime;
             float speed=Kind==RoadEvent.Car ? CarSpeed(dt) : Kind==RoadEvent.Convoy ? 95 : 145;
             Travel+=speed*dt; X=Ground.Bounds.Left-64+Travel;
+            if(Wheelspin){
+                int count=(int)(StuckTime*32)-(int)(previousSlip*32);
+                double pitch=Pitch*Math.PI/180;
+                float contactX=X-17*(float)Math.Cos(pitch);
+                float contactY=Ground.Bounds.Top-1-Lift-17*(float)Math.Sin(pitch);
+                for(int i=0;i<count;i++){
+                    spray.Add(new PlowSpray { Screen=Screen, X=contactX-4, Y=contactY-2,
+                        VX=-55-(float)random.NextDouble()*65, VY=-38-(float)random.NextDouble()*33,
+                        Radius=0.8f+(float)random.NextDouble()*1.2f, Life=0.32f+(float)random.NextDouble()*0.16f });
+                }
+            }
             if(Kind==RoadEvent.Car && speed>0) {
                 float pressure=dt*speed*0.22f;
                 Compact(previous-20,X-14,pressure);

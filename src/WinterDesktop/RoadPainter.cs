@@ -36,10 +36,14 @@ namespace WinterDesktop
                 var carState=g.Save();
                 g.TranslateTransform(0,-scene.Lift);
                 g.RotateTransform(scene.Pitch);
-				if (scene.Stuck && scene.Rescue==Snowplow.RescuePhase.None) g.TranslateTransform((float)Math.Sin(scene.StuckTime*24)*1.4f,1);
 				g.FillPolygon(Brushes.SteelBlue,new[]{new Point(-27,-12),new Point(-20,-21),new Point(-12,-30),new Point(8,-30),new Point(18,-20),new Point(29,-17),new Point(30,-8),new Point(-28,-8)});
 				g.FillPolygon(Brushes.LightCyan,new[]{new Point(-16,-21),new Point(-10,-27),new Point(6,-27),new Point(13,-21)});
 				Wheel(g,-17,7); Wheel(g,18,7);
+                if (scene.Wheelspin){
+                    double angle=scene.StuckTime*22;
+                    float dx=4*(float)Math.Cos(angle), dy=4*(float)Math.Sin(angle);
+                    g.DrawLine(Pens.LightSteelBlue,-17-dx,-7-dy,-17+dx,-7+dy);
+                }
 				g.FillRectangle(Brushes.LemonChiffon,24,-17,5,3);
                 if(scene.Rescue!=Snowplow.RescuePhase.None && scene.Rescue!=Snowplow.RescuePhase.Tow &&
                     (int)(scene.StuckTime*2)%2==0){
