@@ -305,7 +305,8 @@ namespace WinterDesktop
 				graphicsPath.AddLine(crest[num - 1], new PointF(crest[num - 1].X, (float)s.Bounds.Top + 0.4f));
 				graphicsPath.AddLine(crest[num - 1].X, (float)s.Bounds.Top + 0.4f, crest[0].X, (float)s.Bounds.Top + 0.4f);
 				graphicsPath.CloseFigure();
-				using (LinearGradientBrush linearGradientBrush = new LinearGradientBrush(new PointF(0f, s.Bounds.Top - 48), new PointF(0f, s.Bounds.Top + 2), Color.White, Color.FromArgb(229, 236, 242)))
+				float gradientTop = Math.Min(s.Bounds.Top - 48f, graphicsPath.GetBounds().Top - 1f);
+				using (LinearGradientBrush linearGradientBrush = new LinearGradientBrush(new PointF(0f, gradientTop), new PointF(0f, s.Bounds.Top + 2), Color.White, Color.FromArgb(229, 236, 242)))
 				{
 					linearGradientBrush.InterpolationColors = new ColorBlend
 					{
@@ -404,6 +405,7 @@ namespace WinterDesktop
 		}
 	}
 }
+
 
 
 

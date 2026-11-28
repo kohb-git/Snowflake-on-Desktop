@@ -50,6 +50,15 @@ namespace WinterDesktop {
  if(car.Active || slip!=(depth>=4.5f) || tow!=(depth>=10) || hitch!=tow ||
  (depth>0 && (ground.Snow[60]>=depth || tilt==0)))throw new Exception("Collision failed: "+depth);
  Console.WriteLine("Depth "+depth+": slip="+slip+", tow="+tow+", track="+ground.Snow[60]);}
+ using(var image=new Bitmap(320,240))using(var g=Graphics.FromImage(image)){
+ var surface=new Surface("ground",new Rectangle(0,220,320,2),true);
+ for(int i=0;i<surface.Snow.Length;i++)surface.Snow[i]=145f;
+ typeof(Painter).GetMethod("DrawDrift",BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,new object[]{g,surface});
+ int previous=255;
+ for(int y=78;y<219;y++){var pixel=image.GetPixel(160,y);
+ if(pixel.A!=255 || pixel.R>previous+1)throw new Exception("Repeated snow gradient at "+y);previous=pixel.R;}
+ Console.WriteLine("Tall snowdrift gradient passed");}
  return 0;
  }}}
+
 
