@@ -176,7 +176,7 @@ namespace WinterDesktop
 		private void ShowScreenStatus()
 		{
 			RefreshWindows();
-			var report=new StringBuilder("snowlit 1.4.0 · Диагностика экранов");
+			var report=new StringBuilder("snowlit 1.4.1 · Диагностика экранов");
 			report.AppendLine().AppendLine();
 			int n=0;
 			foreach (var screen in world.Screens) {
@@ -295,7 +295,7 @@ namespace WinterDesktop
 			});
 			help.DropDownItems.Add("О приложении", null, delegate
 			{
-				MessageBox.Show("snowlit 1.4.0\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("snowlit 1.4.1\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			exitItem = new ToolStripMenuItem("Выход · Ctrl+Shift+Q", null, delegate
 			{

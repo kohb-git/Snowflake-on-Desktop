@@ -23,6 +23,20 @@ namespace WinterDesktop {
  while(sw.ElapsedMilliseconds<2000){Application.DoEvents();var f=(Form)typeof(SnowWindow).GetField("options",flags).GetValue(snow);if(f!=null && f.Visible){Console.WriteLine("Settings opened, ms: "+sw.ElapsedMilliseconds);f.Close();break;}}
  if(sw.ElapsedMilliseconds>=2000)throw new Exception("Settings timeout");snow.Close();}
 
+ var sprayWorld=new World(1);
+ var area=new Rectangle(0,0,100,80);
+ var screen=new ScreenArea("spray",area,area);
+ sprayWorld.SetScreens(new List<ScreenArea>{screen});
+ sprayWorld.Spray.Add(new PlowSpray{Screen=screen,X=50,Y=40,Radius=8,Life=1});
+ using(var image=new Bitmap(100,80))using(var g=Graphics.FromImage(image)){
+ foreach(int coverWidth in new[]{0,50,100,0}){
+ sprayWorld.WindowCovers.Clear();
+ if(coverWidth>0)sprayWorld.WindowCovers.Add(new Rectangle(0,0,coverWidth,80));
+ Painter.Draw(g,sprayWorld);
+ if((image.GetPixel(46,40).A>0)!=(coverWidth==0) ||
+    (image.GetPixel(54,40).A>0)!=(coverWidth<100))throw new Exception("Spray window clipping: "+coverWidth);
+ }}
+ Console.WriteLine("Spray passed uncovered, partial, full and uncovered-again checks");
  var vehicle=w.Plows[0];vehicle.Reset();var random=new Random(42);
  for(int round=0;round<3;round++){
  bool seen=false,stuck=false,delivered=false,rendered=false;

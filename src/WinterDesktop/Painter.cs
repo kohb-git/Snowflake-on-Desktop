@@ -168,6 +168,10 @@ namespace WinterDesktop
 		{
 			using (SolidBrush solidBrush3 = new SolidBrush(Color.White))
 			{
+				var sprayState = g.Save();
+				if (world.Spray.Count > 0)
+					foreach (Rectangle window in world.WindowCovers)
+						g.ExcludeClip(window);
 				foreach (PlowSpray item6 in world.Spray)
 				{
 					GraphicsState gstate6 = g.Save();
@@ -176,6 +180,7 @@ namespace WinterDesktop
 					g.FillEllipse(solidBrush3, item6.X - item6.Radius, item6.Y - item6.Radius, item6.Radius * 2f, item6.Radius * 2f);
 					g.Restore(gstate6);
 				}
+				g.Restore(sprayState);
 			}
 			foreach (Snowplow plow in world.Plows)
 			{
