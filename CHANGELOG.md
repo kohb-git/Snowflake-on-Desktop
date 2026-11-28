@@ -2,6 +2,7 @@
 
 | Версия / Version | Русский | English |
 | --- | --- | --- |
+| [1.4.0](docs/releases/1.4.0.md) | Водитель вызывает пикап и включает аварийку. | A stranded driver calls a pickup and flashes the hazard lights. |
 | [1.3.1](docs/releases/1.3.1.md) | Плавная заливка высоких сугробов. | Smooth shading on tall drifts. |
 | [1.3.0](docs/releases/1.3.0.md) | Коллизии со снегом, колея и буксировка. | Snow collisions, compressed tracks and tractor rescue. |
 | [1.2.3](docs/releases/1.2.3.md) | Упрощено меню снежинки. | Simplified tray menu. |

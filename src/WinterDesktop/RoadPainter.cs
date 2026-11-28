@@ -9,31 +9,73 @@ namespace WinterDesktop
 		{
 			if (scene.Kind == RoadEvent.Plow) { DrawPlow(g, scene); return; }
 			if (scene.Kind == RoadEvent.Car) {
-				if(scene.Rescue!=Snowplow.RescuePhase.None){
+				if(scene.Rescue>=Snowplow.RescuePhase.Approach){
                     float offset=scene.TractorX-scene.X;
+                    float rear=scene.Ground.HeightAt(scene.TractorX-20);
+                    float front=scene.Ground.HeightAt(scene.TractorX+19);
+                    float slope=(rear-front)/39f;
+                    float height=rear-20*slope;
+                    float angle=(float)Math.Atan(slope);
                     if(scene.Rescue!=Snowplow.RescuePhase.Approach){
                         float sag=scene.Rescue==Snowplow.RescuePhase.Hitch ? Math.Max(0,89-offset) : 0;
-                        g.DrawBezier(Pens.SlateGray,28,-10-scene.Lift,38,-10+sag-scene.Lift,offset-40,-10+sag,offset-32,-12);
+                        float hitchX=offset-32*(float)Math.Cos(angle)+12*(float)Math.Sin(angle);
+                        float hitchY=-height-32*(float)Math.Sin(angle)-12*(float)Math.Cos(angle);
+                        g.DrawBezier(Pens.SlateGray,28,-10-scene.Lift,38,-10+sag-scene.Lift,hitchX-8,hitchY+sag,hitchX,hitchY);
                     }
                     var tractorState=g.Save();
-                    g.TranslateTransform(offset,0);
-                    DrawTractor(g,scene.TractorTravel);
+                    g.TranslateTransform(offset,-height);
+                    g.RotateTransform(angle*180/(float)Math.PI);
+                    g.FillRectangle(Brushes.Firebrick,-32,-21,63,13);
+                    g.FillPolygon(Brushes.DarkRed,new[]{new Point(-10,-21),new Point(-9,-34),new Point(7,-34),new Point(19,-21)});
+                    g.FillPolygon(Brushes.LightSteelBlue,new[]{new Point(-6,-23),new Point(-6,-31),new Point(6,-31),new Point(14,-23)});
+                    g.DrawLine(Pens.Silver,-32,-22,-13,-22);
+                    g.FillRectangle(Brushes.LemonChiffon,26,-19,5,4);
+                    Wheel(g,-20,7); Wheel(g,19,7);
                     g.Restore(tractorState);
                 }
+                var carState=g.Save();
                 g.TranslateTransform(0,-scene.Lift);
                 g.RotateTransform(scene.Pitch);
-				if (scene.Stuck) g.TranslateTransform((float)Math.Sin(scene.StuckTime*24)*1.4f,1);
+				if (scene.Stuck && scene.Rescue==Snowplow.RescuePhase.None) g.TranslateTransform((float)Math.Sin(scene.StuckTime*24)*1.4f,1);
 				g.FillPolygon(Brushes.SteelBlue,new[]{new Point(-27,-12),new Point(-20,-21),new Point(-12,-30),new Point(8,-30),new Point(18,-20),new Point(29,-17),new Point(30,-8),new Point(-28,-8)});
 				g.FillPolygon(Brushes.LightCyan,new[]{new Point(-16,-21),new Point(-10,-27),new Point(6,-27),new Point(13,-21)});
 				Wheel(g,-17,7); Wheel(g,18,7);
 				g.FillRectangle(Brushes.LemonChiffon,24,-17,5,3);
+                if(scene.Rescue!=Snowplow.RescuePhase.None && scene.Rescue!=Snowplow.RescuePhase.Tow &&
+                    (int)(scene.StuckTime*2)%2==0){
+                    g.FillRectangle(Brushes.Orange,-27,-15,4,3);
+                    g.FillRectangle(Brushes.Orange,25,-14,4,3);
+                }
+                g.Restore(carState);
+                if(scene.Rescue>=Snowplow.RescuePhase.Exit && scene.Rescue<=Snowplow.RescuePhase.Hitch)
+                    DrawDriver(g,scene);
 				return;
 			}
 			DrawTipper(g, scene);
 			DrawTractor(g, scene.Travel);
 		}
 
-		private static void DrawTractor(Graphics g, float travel)
+		private static void DrawDriver(Graphics g,Snowplow scene)
+        {
+            float progress=scene.Rescue==Snowplow.RescuePhase.Exit ? Math.Min(1,scene.hitchTime) :
+                scene.Rescue==Snowplow.RescuePhase.Hitch ? Math.Max(0,1-scene.hitchTime) : 1;
+            var state=g.Save();
+            g.TranslateTransform(-5-32*progress,-scene.Lift*(1-progress));
+            float stride=(float)Math.Sin(progress*Math.PI*4)*3;
+            g.DrawLine(Pens.DarkSlateGray,-1,-9,-2-stride,-1);
+            g.DrawLine(Pens.DarkSlateGray,1,-9,2+stride,-1);
+            g.FillRectangle(Brushes.DarkOrange,-3,-17,7,9);
+            g.FillEllipse(Brushes.Bisque,-3,-23,6,7);
+            g.FillRectangle(Brushes.MidnightBlue,-3,-24,7,3);
+            if(scene.Rescue==Snowplow.RescuePhase.Call){
+                g.DrawLine(Pens.Orange,2,-15,6,-13);
+                g.DrawLine(Pens.Bisque,6,-13,4,-19);
+                g.FillRectangle(Brushes.Black,3,-21,2,4);
+            }
+            g.Restore(state);
+        }
+
+        private static void DrawTractor(Graphics g, float travel)
 		{
 			// The chassis, glazed cab and loader linkage share fixed axle centres.
 			g.FillRectangle(Brushes.DarkSlateGray,-25,-16,55,9);

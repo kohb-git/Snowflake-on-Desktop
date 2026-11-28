@@ -13,10 +13,10 @@ namespace WinterDesktop
         internal bool Stuck { get { return StuckTime > 0; } }
         internal RoadEvent Kind;
         private RoadEvent next;
-        internal enum RescuePhase { None, Approach, Hitch, Tow }
+        internal enum RescuePhase { None, Exit, Call, Approach, Hitch, Tow }
         internal RescuePhase Rescue;
         internal float TractorX, TractorTravel, Lift, Pitch;
-        private float tractionUntil, hitchTime;
+        private float tractionUntil; internal float hitchTime;
 
         private void Start(RoadEvent kind)
         {
@@ -61,18 +61,27 @@ namespace WinterDesktop
             Lift+=(0.5f*(frontSupport+rearSupport)-Lift)*Math.Min(1,dt*14);
             Pitch+=((float)(Math.Atan2(rearSupport-frontSupport,35)*180/Math.PI)-Pitch)*Math.Min(1,dt*14);
             if(Rescue==RescuePhase.None && resistance>=10){
-                Rescue=RescuePhase.Approach;
-                TractorX=Ground.Bounds.Right+54;
+                Rescue=RescuePhase.Exit; hitchTime=0;
+                TractorX=Ground.Bounds.Left-64;
+            }
+            if(Rescue==RescuePhase.Exit || Rescue==RescuePhase.Call){
+                StuckTime+=dt;
+                hitchTime+=dt;
+                if(hitchTime >= (Rescue==RescuePhase.Exit ? 1f : 2.5f)){
+                    Rescue=Rescue==RescuePhase.Exit ? RescuePhase.Call : RescuePhase.Approach;
+                    hitchTime=0;
+                }
+                return 0;
             }
             if(Rescue==RescuePhase.Approach){
-                float gap=TractorX-(X+81);
+                float gap=X+81-TractorX;
                 float step=Math.Min(Math.Max(0,gap),165*dt);
-                TractorX-=step; TractorTravel-=step;
+                TractorX+=step; TractorTravel+=step;
                 if(gap<=step){Rescue=RescuePhase.Hitch;hitchTime=0;}
                 StuckTime+=dt;return 0;
             }
             if(Rescue==RescuePhase.Hitch){
-                hitchTime+=dt; TractorX+=8*dt; TractorTravel+=8*dt;
+                StuckTime+=dt; hitchTime+=dt; TractorX+=8*dt; TractorTravel+=8*dt;
                 if(hitchTime>=1){Rescue=RescuePhase.Tow;StuckTime=0;}
                 return 0;
             }
