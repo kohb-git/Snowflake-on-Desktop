@@ -38,5 +38,18 @@ namespace WinterDesktop {
  Console.WriteLine(vehicle.Kind+" passed");}
  w.Clear();if(vehicle.Active || vehicle.Load!=0 || vehicle.Stuck)throw new Exception("reset");
 
+ foreach(float depth in new[]{0f,2f,6f,14f}){
+ var ground=new Surface("test",new Rectangle(-400,600,800,2),true);
+ var car=new Snowplow(ground,new ScreenArea("test",new Rectangle(-400,0,800,600),new Rectangle(-400,0,800,600)));
+ car.Demonstrate();
+ for(int j=0;j<ground.Snow.Length;j++)ground.Snow[j]=(j>35 && j<95)?depth:0;
+ bool slip=false,tow=false,hitch=false;float tilt=0;
+ for(int tick=0;tick<12000 && car.Active;tick++){
+ car.Step(1f/120,w.Spray,random);slip|=car.Stuck;tow|=car.Rescue==Snowplow.RescuePhase.Tow;
+ hitch|=car.Rescue==Snowplow.RescuePhase.Hitch;tilt=Math.Max(tilt,Math.Abs(car.Pitch));}
+ if(car.Active || slip!=(depth>=4.5f) || tow!=(depth>=10) || hitch!=tow ||
+ (depth>0 && (ground.Snow[60]>=depth || tilt==0)))throw new Exception("Collision failed: "+depth);
+ Console.WriteLine("Depth "+depth+": slip="+slip+", tow="+tow+", track="+ground.Snow[60]);}
  return 0;
  }}}
+

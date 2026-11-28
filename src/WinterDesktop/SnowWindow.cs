@@ -176,7 +176,7 @@ namespace WinterDesktop
 		private void ShowScreenStatus()
 		{
 			RefreshWindows();
-			var report=new StringBuilder("snowlit 1.2.3 · Диагностика экранов");
+			var report=new StringBuilder("snowlit 1.3.0 · Диагностика экранов");
 			report.AppendLine().AppendLine();
 			int n=0;
 			foreach (var screen in world.Screens) {
@@ -256,6 +256,17 @@ namespace WinterDesktop
 			snow.DropDownItems.Add("Пауза на 30 минут", null, delegate { PauseFor(30); });
 			snow.DropDownItems.Add("Пауза на 2 часа", null, delegate { PauseFor(120); });
 			snow.DropDownItems.Add(new ToolStripSeparator());
+			var demo = new ToolStripMenuItem("Показать событие: машина в снегу");
+			Func<Snowplow, bool> available = v => !v.Active && preferences.SnowOn(v.Screen.Id) &&
+				!world.FullScreenCovers.Exists(r => r.Contains(v.Screen.SnowArea));
+			snow.DropDownOpening += delegate { demo.Enabled = !paused && !Suspended && world.Plows.Exists(available.Invoke); };
+			demo.Click += delegate {
+				Point at = Cursor.Position;
+				at.Offset(-desktop.Left,-desktop.Top);
+				var vehicle = world.Plows.Find(v => v.Screen.Bounds.Contains(at) && available(v)) ?? world.Plows.Find(available.Invoke);
+				if (!paused && !Suspended && vehicle != null) { vehicle.Demonstrate(); Render(); }
+			};
+			snow.DropDownItems.Add(demo);
 			snow.DropDownItems.Add("Очистить снег и снеговиков", null, delegate
 			{
 				world.Clear();
@@ -284,7 +295,7 @@ namespace WinterDesktop
 			});
 			help.DropDownItems.Add("О приложении", null, delegate
 			{
-				MessageBox.Show("snowlit 1.2.3\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("snowlit 1.3.0\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			exitItem = new ToolStripMenuItem("Выход · Ctrl+Shift+Q", null, delegate
 			{
@@ -692,6 +703,7 @@ namespace WinterDesktop
 		}
 	}
 }
+
 
 
 

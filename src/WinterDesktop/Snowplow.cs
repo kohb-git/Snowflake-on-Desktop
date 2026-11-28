@@ -13,14 +13,87 @@ namespace WinterDesktop
         internal bool Stuck { get { return StuckTime > 0; } }
         internal RoadEvent Kind;
         private RoadEvent next;
-        private bool escaped;
+        internal enum RescuePhase { None, Approach, Hitch, Tow }
+        internal RescuePhase Rescue;
+        internal float TractorX, TractorTravel, Lift, Pitch;
+        private float tractionUntil, hitchTime;
+
+        private void Start(RoadEvent kind)
+        {
+            Kind=kind; Active=true; Travel=Load=StuckTime=0; waiting=0;
+            Rescue=RescuePhase.None; Lift=Pitch=TractorTravel=0;
+            X=Ground.Bounds.Left-64; tractionUntil=X;
+        }
+
+        internal void Demonstrate()
+        {
+            if (Active) return;
+            if (Ground.Accumulates) {
+                // A small real drift makes the interaction visible on an empty desktop.
+                for(int i=0;i<Ground.Snow.Length;i++){
+                    float t=i/(float)(Ground.Snow.Length-1);
+                    float mound=Math.Max(0,1-Math.Abs(t-0.48f)/0.10f);
+                    Ground.Snow[i]=Math.Max(Ground.Snow[i],16*mound*mound);
+                }
+            }
+            Start(RoadEvent.Car);
+        }
+
+        private float Depth(float x)
+        {
+            return x<Ground.Bounds.Left || x>Ground.Bounds.Right ? 0 : Ground.HeightAt(x);
+        }
+
+        private void Compact(float from,float to,float amount)
+        {
+            float scale=(Ground.Snow.Length-1)/(float)Math.Max(1,Ground.Bounds.Width);
+            int first=Math.Max(0,(int)Math.Ceiling((from-Ground.Bounds.Left)*scale));
+            int last=Math.Min(Ground.Snow.Length-1,(int)Math.Floor((to-Ground.Bounds.Left)*scale));
+            for(int i=first;i<=last;i++) Ground.Snow[i]=Math.Max(0,Ground.Snow[i]-amount);
+        }
+
+        private float CarSpeed(float dt)
+        {
+            float rear=Depth(X-17), front=Depth(X+18);
+            float ahead=Depth(X+23);
+            float resistance=Math.Max(front,ahead);
+            float frontSupport=Math.Min(12,front*0.55f), rearSupport=Math.Min(12,rear*0.55f);
+            Lift+=(0.5f*(frontSupport+rearSupport)-Lift)*Math.Min(1,dt*14);
+            Pitch+=((float)(Math.Atan2(rearSupport-frontSupport,35)*180/Math.PI)-Pitch)*Math.Min(1,dt*14);
+            if(Rescue==RescuePhase.None && resistance>=10){
+                Rescue=RescuePhase.Approach;
+                TractorX=Ground.Bounds.Right+54;
+            }
+            if(Rescue==RescuePhase.Approach){
+                float gap=TractorX-(X+81);
+                float step=Math.Min(Math.Max(0,gap),165*dt);
+                TractorX-=step; TractorTravel-=step;
+                if(gap<=step){Rescue=RescuePhase.Hitch;hitchTime=0;}
+                StuckTime+=dt;return 0;
+            }
+            if(Rescue==RescuePhase.Hitch){
+                hitchTime+=dt; TractorX+=8*dt; TractorTravel+=8*dt;
+                if(hitchTime>=1){Rescue=RescuePhase.Tow;StuckTime=0;}
+                return 0;
+            }
+            if(Rescue==RescuePhase.Tow){
+                TractorX+=78*dt;TractorTravel+=78*dt;return 78;
+            }
+            if(Stuck || (resistance>=4.5f && X>=tractionUntil)){
+                StuckTime+=dt;
+                Compact(X+13,X+24,dt*2);
+                if(StuckTime<0.8f)return 0;
+                StuckTime=0;tractionUntil=X+32;
+            }
+            return Math.Max(45,175-12*resistance);
+        }
         private double waiting, sampleDelay;
         internal Snowplow(Surface ground, ScreenArea screen) { Ground=ground; Screen=screen; }
 
         internal void Reset()
         {
             Active=false; waiting=sampleDelay=0; Travel=Load=StuckTime=0;
-            escaped=false; next=RoadEvent.Plow;
+            Rescue=RescuePhase.None; next=RoadEvent.Plow;
         }
 
         internal void Step(float dt,List<PlowSpray> spray,Random random)
@@ -36,20 +109,16 @@ namespace WinterDesktop
                 if (waiting<120 || total<Ground.Snow.Length*0.15f) return;
                 Kind=next;
                 next=Kind==RoadEvent.Car ? RoadEvent.Plow : (RoadEvent)((int)Kind+1);
-                Active=true; escaped=false; Travel=Load=StuckTime=0; waiting=0;
-                X=Ground.Bounds.Left-64;
-            }
-            if(Kind==RoadEvent.Car && !escaped) {
-                float wheel=X+18;
-                if(Stuck || (wheel>=Ground.Bounds.Left && wheel<Ground.Bounds.Right && Ground.HeightAt(wheel)>=3)) {
-                    StuckTime+=dt;
-                    if(StuckTime<3)return;
-                    escaped=true; StuckTime=0;
-                }
+                Start(Kind);
             }
             float previous=X;
-            float speed=Kind==RoadEvent.Convoy ? 95 : Kind==RoadEvent.Car ? 175 : 145;
+            float speed=Kind==RoadEvent.Car ? CarSpeed(dt) : Kind==RoadEvent.Convoy ? 95 : 145;
             Travel+=speed*dt; X=Ground.Bounds.Left-64+Travel;
+            if(Kind==RoadEvent.Car && speed>0) {
+                float pressure=dt*speed*0.22f;
+                Compact(previous-20,X-14,pressure);
+                Compact(previous+15,X+21,pressure);
+            }
             if(Kind!=RoadEvent.Car) {
                 float collected=Sweep(previous+44,X+52);
                 Load+=collected;
@@ -77,4 +146,6 @@ namespace WinterDesktop
         }
     }
 }
+
+
 

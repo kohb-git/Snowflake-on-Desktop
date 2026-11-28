@@ -9,6 +9,19 @@ namespace WinterDesktop
 		{
 			if (scene.Kind == RoadEvent.Plow) { DrawPlow(g, scene); return; }
 			if (scene.Kind == RoadEvent.Car) {
+				if(scene.Rescue!=Snowplow.RescuePhase.None){
+                    float offset=scene.TractorX-scene.X;
+                    if(scene.Rescue!=Snowplow.RescuePhase.Approach){
+                        float sag=scene.Rescue==Snowplow.RescuePhase.Hitch ? Math.Max(0,89-offset) : 0;
+                        g.DrawBezier(Pens.SlateGray,28,-10-scene.Lift,38,-10+sag-scene.Lift,offset-40,-10+sag,offset-32,-12);
+                    }
+                    var tractorState=g.Save();
+                    g.TranslateTransform(offset,0);
+                    DrawTractor(g,scene.TractorTravel);
+                    g.Restore(tractorState);
+                }
+                g.TranslateTransform(0,-scene.Lift);
+                g.RotateTransform(scene.Pitch);
 				if (scene.Stuck) g.TranslateTransform((float)Math.Sin(scene.StuckTime*24)*1.4f,1);
 				g.FillPolygon(Brushes.SteelBlue,new[]{new Point(-27,-12),new Point(-20,-21),new Point(-12,-30),new Point(8,-30),new Point(18,-20),new Point(29,-17),new Point(30,-8),new Point(-28,-8)});
 				g.FillPolygon(Brushes.LightCyan,new[]{new Point(-16,-21),new Point(-10,-27),new Point(6,-27),new Point(13,-21)});
@@ -17,10 +30,10 @@ namespace WinterDesktop
 				return;
 			}
 			DrawTipper(g, scene);
-			DrawTractor(g, scene);
+			DrawTractor(g, scene.Travel);
 		}
 
-		private static void DrawTractor(Graphics g, Snowplow scene)
+		private static void DrawTractor(Graphics g, float travel)
 		{
 			// The chassis, glazed cab and loader linkage share fixed axle centres.
 			g.FillRectangle(Brushes.DarkSlateGray,-25,-16,55,9);
@@ -41,13 +54,13 @@ namespace WinterDesktop
 			g.FillRectangle(Brushes.DarkOrange,-29,-51,4,3);
 			g.DrawLine(Pens.DarkSlateGray,-6,-40,2,-42);g.FillRectangle(Brushes.Black,1,-44,3,6);
 			g.FillRectangle(Brushes.DimGray,-8,-17,8,3);g.FillRectangle(Brushes.Silver,-8,-12,7,2);
-			Tire(g,-22,14,scene.Travel,true); Tire(g,21,9,scene.Travel,true);
+			Tire(g,-22,14,travel,true); Tire(g,21,9,travel,true);
 			using(var fender=new Pen(Color.OliveDrab,3))g.DrawArc(fender,-38,-30,32,31,194,138);
 			using(var arm=new Pen(Color.SlateGray,3))g.DrawLine(arm,12,-20,39,-9);
 			g.DrawLine(Pens.Silver,22,-22,41,-12);
 			g.FillPolygon(Brushes.Firebrick,new[]{new Point(34,-18),new Point(46,-23),new Point(52,-20),new Point(52,-3),new Point(34,-3)});
 			g.FillEllipse(Brushes.DarkSlateGray,39,-18,12,14);
-			g.DrawArc(Pens.Silver,40,-17,9,12,(int)(scene.Travel*5)%360,240);
+			g.DrawArc(Pens.Silver,40,-17,9,12,(int)(travel*5)%360,240);
 			g.DrawLine(Pens.Gainsboro,34,-3,52,-3);
 			var chute=new[]{new Point(39,-15),new Point(28,-37),new Point(4,-49),new Point(-30,-55),new Point(-48,-51)};
 			using(var tube=new Pen(Color.DarkSlateGray,5)){tube.LineJoin=LineJoin.Round;g.DrawLines(tube,chute);}
@@ -229,4 +242,5 @@ private static void DrawPlow(Graphics g, Snowplow plow)
 
 		  }
 }
+
 
