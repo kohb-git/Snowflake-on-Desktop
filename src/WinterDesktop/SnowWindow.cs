@@ -176,7 +176,7 @@ namespace WinterDesktop
 		private void ShowScreenStatus()
 		{
 			RefreshWindows();
-			var report=new StringBuilder("snowlit 1.2.2 · Диагностика экранов");
+			var report=new StringBuilder("snowlit 1.2.3 · Диагностика экранов");
 			report.AppendLine().AppendLine();
 			int n=0;
 			foreach (var screen in world.Screens) {
@@ -245,50 +245,46 @@ namespace WinterDesktop
 			base.TopMost = true;
 			base.AutoScaleMode = AutoScaleMode.None;
 			ContextMenuStrip contextMenuStrip = new ContextMenuStrip();
-			contextMenuStrip.Items.Add("snowlit · 1.2.2").Enabled = false;
-			pauseItem = new ToolStripMenuItem("Приостановить снег");
-			ToolStripMenuItem toolStripMenuItem = pauseItem;
-			EventHandler value = delegate
-			{
-				TogglePause();
-			};
-			toolStripMenuItem.Click += value;
+			pauseItem = new ToolStripMenuItem("Приостановить снег", null, delegate { TogglePause(); });
 			contextMenuStrip.Items.Add(pauseItem);
-			var timed = new ToolStripMenuItem("Пауза на время");
-			timed.DropDownItems.Add("На 30 минут",null,delegate { PauseFor(30); });
-			timed.DropDownItems.Add("На 2 часа",null,delegate { PauseFor(120); });
-			contextMenuStrip.Items.Add(timed);
 			contextMenuStrip.Items.Add("Настройки…", null, delegate
 			{
 				BeginInvoke((Action)delegate { if (!closing) OpenOptions(); });
 			});
-			contextMenuStrip.Items.Add("Очистить снег и снеговиков", null, delegate
+			var snow = new ToolStripMenuItem("Снег");
+			contextMenuStrip.Items.Add(snow);
+			snow.DropDownItems.Add("Пауза на 30 минут", null, delegate { PauseFor(30); });
+			snow.DropDownItems.Add("Пауза на 2 часа", null, delegate { PauseFor(120); });
+			snow.DropDownItems.Add(new ToolStripSeparator());
+			snow.DropDownItems.Add("Очистить снег и снеговиков", null, delegate
 			{
 				world.Clear();
 				Render();
 			});
 			contextMenuStrip.Items.Add(new ToolStripSeparator());
-			contextMenuStrip.Items.Add("Проверить экраны…", null, delegate
+			var help = new ToolStripMenuItem("Справка и обновления");
+			contextMenuStrip.Items.Add(help);
+			help.DropDownItems.Add("Проверить экраны…", null, delegate
 			{
 				ShowScreenStatus();
 			});
-			contextMenuStrip.Items.Add("Проверить обновления…", null, delegate
+			help.DropDownItems.Add("Проверить обновления…", null, delegate
 			{
 				UpdateCheck.OpenLatest(this);
 			});
-			contextMenuStrip.Items.Add("Что нового?", null, delegate
+			help.DropDownItems.Add("Что нового?", null, delegate
 			{
 				string url = "https://github.com/kohb-git/Snowflake-on-Desktop/releases/tag/v" + typeof(SnowWindow).Assembly.GetName().Version.ToString(3);
 				try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
 				catch (Win32Exception) { MessageBox.Show(url, "snowlit"); }
 			});
-			contextMenuStrip.Items.Add("Краткая справка", null, delegate
+			help.DropDownItems.Add("Краткая справка", null, delegate
 			{
 				MessageBox.Show("Запуск: достаточно одного EXE. Установка и интернет не нужны.\n\nПравый щелчок по снежинке в трее — меню.\nДвойной щелчок — пауза; Ctrl+Shift+Q — выход, если сочетание свободно.\n\nВ настройках: снег, накопление, таяние, гирлянда и экономия ресурсов. Режим эффектов задаётся на вкладке «Экраны».\nНа развёрнутых окнах гирлянды нет. Активное полноэкранное окно скрывает эффект на своём мониторе.\n\nДля обновления завершите старую версию через трей. Если включён автозапуск, нажмите «Применить» в настройках новой версии.\nНастройки сохраняются в %LOCALAPPDATA%\\QuietSnow. Перед удалением отключите автозапуск.", "snowlit · Справка", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
-			contextMenuStrip.Items.Add("О приложении", null, delegate
+			help.DropDownItems.Add("О приложении", null, delegate
 			{
-				MessageBox.Show("snowlit 1.2.2\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+				MessageBox.Show("snowlit 1.2.3\nСнег и снеговики на рабочем столе.\n\nДвойной щелчок по значку — пауза.\nCtrl+Shift+Q — выход.\nНастройки сохраняются автоматически.\nРаботает без интернета и установки.", "snowlit", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
 			});
 			exitItem = new ToolStripMenuItem("Выход · Ctrl+Shift+Q", null, delegate
 			{
@@ -696,6 +692,7 @@ namespace WinterDesktop
 		}
 	}
 }
+
 
 
 
