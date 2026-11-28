@@ -1,32 +1,29 @@
 # snowlit
 
-A Windows desktop snowfall effect with animated lights on window frames.
+**Русский** · [English](README.en.md)
 
-[Download the latest Windows release](https://github.com/kohb-git/Snowflake-on-Desktop/releases/latest). Exit the previous instance from the tray before launching it. Existing QuietSnow preferences are reused.
+Снег для рабочего стола Windows. Снежинки оседают на рамах окон, гирлянды покачиваются при перемещении, а вдоль нижнего края экрана трактор загружает снег в самосвал.
 
-Version 1.2.0 rotates ground events between a snowplow, a tractor with a following tipper, and a car that can get stuck in a drift. Events need accumulated snow, roughly two minutes between passes, and a visible ground area. To exercise the event cycle and settings window on Windows, run `dotnet run --project tests/RoadTests.csproj -c Release`.
+![Снег, гирлянда и погрузка в самосвал](docs/media/snowlit-preview.gif)
 
-From version 1.1.1, choose **Проверить обновления…** and confirm to download the latest release, verify its SHA-256 against GitHub release metadata, replace the portable executable at its existing path and restart. The executable folder must be writable. For 1.1.0 and earlier, install 1.1.1 manually once.
+[Скачать для Windows](https://github.com/kohb-git/Snowflake-on-Desktop/releases/latest) · [История изменений](CHANGELOG.md) · [Сообщить об ошибке](https://github.com/kohb-git/Snowflake-on-Desktop/issues)
 
-Version 1.1.0 adds per-display effect settings, numbered display identification, garland offset and sag with a live preview, timed pauses, and a copyable display report. The tray update check compares the installed version with the latest public GitHub release.
+Анимация выше отрисована движком snowlit на демонстрационной сцене. [Архивный ролик QuietSnow — MP4, 19 секунд](docs/media/QuietSnow-demo.mp4) показывает раннюю концепцию проекта.
 
-Version 1.0.7 keeps the garland visible during window capture and supports monitors with staggered origins.
+## Начало работы
 
-| Path | Contents |
-| --- | --- |
-| src/ | Current snowlit C# source, icon and embedded resource. |
-| prototype/ | Reference 1.0.4 test executable and known issues. |
-| archive/1.0.0/ | Four unmodified files from the original portable distribution, including its historical release report. |
-| tools/ | PowerShell script for collecting Windows process measurements. |
+1. Скачайте EXE из раздела **Assets** последнего выпуска. Сохраните его в папке, доступной для записи, и запустите.
+2. Щёлкните правой кнопкой по снежинке в области уведомлений и откройте **Настройки…**. Во вкладке **Экраны** можно оставить снег на одном мониторе, а гирлянды — на другом.
+3. Двойной щелчок по снежинке ставит анимацию на паузу. Чтобы временно скрыть эффекты, выберите **Пауза на время** на 30 минут или 2 часа.
 
-## Build on Windows
+## Что попробовать
 
-With a modern .NET SDK installed, run `dotnet build src/snowlit.csproj -c Release` at the repository root. NuGet restores .NET Framework 4.0 reference assemblies. The expected output is `src/bin/Release/net40/snowlit.exe`. Exit existing QuietSnow instances before testing.
+- **Переместите обычное окно.** Гирлянда следует за рамкой. Отступ и провисание регулируются в предпросмотре. На развёрнутых окнах гирлянда не появляется.
+- **Дайте снегу накопиться.** Примерно через две минуты при достаточном количестве снега у нижнего края начинают по очереди появляться снегоуборщик, трактор с самосвалом и легковушка, которая может застрять в сугробе.
+- **Откройте «Проверить экраны…».** Отчёт показывает координаты, масштаб и состояние эффектов на каждом экране. Его можно скопировать в сообщение об ошибке.
 
-## Recovery and verification
+## Обновления
 
-The 1.0.0 README mentions build.ps1, package-release.ps1, automated tests and a Windows smoke test. Those files were excluded from the portable distribution. Its measurements apply only to the old release.
+Выберите **Проверить обновления…** и подтвердите установку. Начиная с версии 1.1.1 приложение проверяет SHA-256 загруженного EXE, заменяет файл в прежней папке и перезапускается. **Что нового?** открывает описание установленной версии на GitHub.
 
-The original source snapshot was decompiled from the 1.0.4 screen-test binary with ILSpy. The foreground-window refresh helper was restored from its IL, and compiler-generated names were cleaned up as needed to compile. Original comments, local variable names, test sources and build scripts are unavailable.
-
-The recovered C# files compiled together into a Windows GUI executable using Roslyn 3.11, C# 7.3, .NET Framework 4.0 reference assemblies, the recovered icon and embedded resource. Windows runtime equivalence, a full SDK project build and multi-monitor behavior still need verification. Use the reference executable and prototype/README.md for comparisons.
+[Сборка, тесты и происхождение исходников](docs/DEVELOPMENT.md)

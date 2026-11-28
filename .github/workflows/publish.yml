@@ -1,0 +1,31 @@
+name: Publish snowlit
+on:
+  push:
+    branches: [main]
+    paths: ['releases/current.txt']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: publish-snowlit
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(tr -d '\r\n' < releases/current.txt)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          asset="releases/$version/snowlit-$version.exe"
+          notes="docs/releases/$version.md"
+          test -s "$asset"
+          (cd "releases/$version" && sha256sum --check SHA256SUMS)
+          grep -Fxq '## Русский' "$notes"
+          grep -Fxq '## English' "$notes"
+          gh release create "v$version" "$asset" --target "$GITHUB_SHA" --title "snowlit $version" --notes-file "$notes"
