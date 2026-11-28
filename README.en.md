@@ -8,7 +8,7 @@ Snow for your Windows desktop. Flakes settle on window frames, string lights swa
 
 [Download for Windows](https://github.com/kohb-git/Snowflake-on-Desktop/releases/latest) · [Changelog](CHANGELOG.md) · [Report an issue](https://github.com/kohb-git/Snowflake-on-Desktop/issues)
 
-The animation uses the current snowlit renderer in a staged desktop scene. The [original QuietSnow concept video](docs/media/QuietSnow-demo.mp4) is a 19-second vertical MP4 with Russian captions.
+The animation uses the current snowlit renderer in a staged desktop scene.
 
 ## Getting started
 
